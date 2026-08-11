@@ -1,19 +1,25 @@
 import { useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
 import petEgg from "@/assets/pet-egg.png";
 
 export const Route = createFileRoute("/auth")({
+  ssr: false,
   head: () => ({
     meta: [
       { title: "Sign in — Tama" },
       { name: "description", content: "Sign in or create your Tama account to start growing your habit pet." },
     ],
   }),
+  beforeLoad: async () => {
+    const { data } = await supabase.auth.getSession();
+    if (data.session?.user) throw redirect({ to: "/app" });
+  },
   component: AuthPage,
 });
+
 
 function AuthPage() {
   const navigate = useNavigate();
@@ -30,7 +36,7 @@ function AuthPage() {
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: window.location.origin + "/app" },
+          options: { emailRedirectTo: window.location.origin },
         });
         if (error) throw error;
         toast.success("Welcome! Your egg is hatching…");
@@ -49,7 +55,7 @@ function AuthPage() {
   async function withGoogle() {
     setBusy(true);
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin + "/app",
+      redirect_uri: window.location.origin,
     });
     if (result.error) {
       toast.error(result.error.message ?? "Google sign-in failed");

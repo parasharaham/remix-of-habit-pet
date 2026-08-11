@@ -1,4 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import petAdult from "@/assets/pet-adult.png";
 import { PublicFooter, PublicNav } from "@/components/PublicFooter";
 
@@ -15,6 +16,20 @@ export const Route = createFileRoute("/")({
 });
 
 function Landing() {
+  const navigate = useNavigate();
+
+  // Already signed in (e.g. returning from OAuth)? Go straight to the dashboard.
+  useEffect(() => {
+    let active = true;
+    import("@/integrations/supabase/client").then(async ({ supabase }) => {
+      const { data } = await supabase.auth.getSession();
+      if (active && data.session?.user) navigate({ to: "/app", replace: true });
+    });
+    return () => {
+      active = false;
+    };
+  }, [navigate]);
+
   return (
     <div className="min-h-screen bg-background">
       <PublicNav />
