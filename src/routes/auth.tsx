@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
@@ -36,7 +36,7 @@ function AuthPage() {
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: window.location.origin + "/app" },
+          options: { emailRedirectTo: window.location.origin },
         });
         if (error) throw error;
         toast.success("Welcome! Your egg is hatching…");
@@ -55,7 +55,7 @@ function AuthPage() {
   async function withGoogle() {
     setBusy(true);
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin + "/app",
+      redirect_uri: window.location.origin,
     });
     if (result.error) {
       toast.error(result.error.message ?? "Google sign-in failed");
