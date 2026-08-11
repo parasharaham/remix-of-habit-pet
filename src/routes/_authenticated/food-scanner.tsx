@@ -158,6 +158,21 @@ type Stage =
   | "not-food"
   | "result";
 
+type CamState = "idle" | "requesting" | "starting" | "ready" | "error";
+
+function cameraErrorMessage(e: any): string {
+  const name = e?.name ?? "";
+  if (name === "NotAllowedError" || name === "SecurityError")
+    return "Camera access was blocked. Allow camera access in your browser settings, or upload a photo instead.";
+  if (name === "NotFoundError" || name === "OverconstrainedError")
+    return "No camera was found on this device. You can upload a meal photo instead.";
+  if (name === "NotReadableError")
+    return "Your camera is already in use by another app. Close it and try again, or upload a photo.";
+  if (typeof window !== "undefined" && !window.isSecureContext)
+    return "Camera access needs a secure (https) connection. Upload a photo instead.";
+  return e?.message || "Camera couldn't start. Try allowing camera access or upload a meal photo instead.";
+}
+
 const MEAL_TYPES = [
   { id: "breakfast", label: "Breakfast", emoji: "🥐" },
   { id: "lunch", label: "Lunch", emoji: "🥗" },
@@ -185,7 +200,9 @@ function FoodScannerPage() {
   const streamRef = useRef<MediaStream | null>(null);
   const galleryRef = useRef<HTMLInputElement>(null);
 
-  const [stage, setStage] = useState<Stage>("permission");
+  const [stage, setStage] = useState<Stage>("camera");
+  const [camState, setCamState] = useState<CamState>("idle");
+  const [stream, setStream] = useState<MediaStream | null>(null);
   const [permissionError, setPermissionError] = useState<string | null>(null);
   const [facing, setFacing] = useState<"environment" | "user">("environment");
   const [torch, setTorch] = useState(false);
@@ -203,32 +220,91 @@ function FoodScannerPage() {
   const stopStream = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
+    setStream(null);
+    setTorch(false);
   }, []);
 
   const startStream = useCallback(
     async (mode: "environment" | "user") => {
-      stopStream();
+      // Stop anything running so we never hold two streams at once.
+      streamRef.current?.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+      setStream(null);
+      setPermissionError(null);
+      setCamState("requesting");
+      setStage("camera"); // mount the <video> element before the stream arrives
+
+      if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
+        setPermissionError("This browser doesn't support camera access. Upload a photo instead.");
+        setCamState("error");
+        setStage("permission");
+        return;
+      }
+
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: mode }, width: { ideal: 1920 }, height: { ideal: 1080 } },
-          audio: false,
-        });
-        streamRef.current = stream;
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          await videoRef.current.play().catch(() => {});
+        let media: MediaStream;
+        try {
+          media = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: mode }, width: { ideal: 1920 }, height: { ideal: 1080 } },
+            audio: false,
+          });
+        } catch (inner: any) {
+          // The requested facing mode may not exist (most desktops) — fall back.
+          if (inner?.name === "NotAllowedError" || inner?.name === "SecurityError") throw inner;
+          media = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
         }
-        setStage("camera");
-        setPermissionError(null);
+        streamRef.current = media;
+        setCamState("starting");
+        setStream(media);
       } catch (e: any) {
-        setPermissionError(e?.message || "Camera unavailable");
+        setPermissionError(cameraErrorMessage(e));
+        setCamState("error");
         setStage("permission");
       }
     },
-    [stopStream],
+    [],
   );
 
-  useEffect(() => () => stopStream(), [stopStream]);
+  // Attach the stream once BOTH the stream and the <video> element exist.
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!stream || !video || stage !== "camera") return;
+    let cancelled = false;
+
+    video.srcObject = stream;
+    video.setAttribute("playsinline", "true");
+    video.muted = true;
+
+    const onReady = async () => {
+      if (cancelled) return;
+      try {
+        await video.play();
+      } catch {
+        /* autoplay can reject on some browsers; readiness below still applies */
+      }
+      if (!cancelled && video.videoWidth > 0) setCamState("ready");
+    };
+
+    if (video.readyState >= 1) void onReady();
+    video.addEventListener("loadedmetadata", onReady);
+    video.addEventListener("canplay", onReady);
+
+    return () => {
+      cancelled = true;
+      video.removeEventListener("loadedmetadata", onReady);
+      video.removeEventListener("canplay", onReady);
+    };
+  }, [stream, stage]);
+
+  // Auto-start the camera as soon as the scanner opens — no manual refresh.
+  useEffect(() => {
+    void startStream("environment");
+    return () => {
+      streamRef.current?.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (stage !== "analyzing") return;
@@ -250,7 +326,7 @@ function FoodScannerPage() {
 
   async function capture() {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video || camState !== "ready" || video.readyState < 2 || !video.videoWidth) return;
     try {
       const url = await prepareImage(video);
       setPhoto(url);
@@ -382,6 +458,7 @@ function FoodScannerPage() {
         {(stage === "camera" || stage === "captured") && (
           <CameraStage
             stage={stage}
+            camState={camState}
             videoRef={videoRef}
             photo={photo}
             torch={torch}
@@ -503,6 +580,7 @@ function PermissionCard({
 /* ---------- Camera ---------- */
 function CameraStage({
   stage,
+  camState,
   videoRef,
   photo,
   torch,
@@ -515,6 +593,7 @@ function CameraStage({
   onUse,
 }: {
   stage: "camera" | "captured";
+  camState: CamState;
   videoRef: React.RefObject<HTMLVideoElement | null>;
   photo: string | null;
   torch: boolean;
@@ -535,9 +614,18 @@ function CameraStage({
           <img src={photo} alt="Captured meal" className="h-full w-full object-cover" />
         ) : null}
 
-        {stage === "camera" && (
+        {stage === "camera" && camState === "ready" && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
             <div className="h-3/4 w-4/5 rounded-3xl border-2 border-white/60 shadow-[0_0_0_9999px_rgba(0,0,0,0.25)]" />
+          </div>
+        )}
+
+        {stage === "camera" && camState !== "ready" && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/70 text-white">
+            <span className="h-9 w-9 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+            <p className="text-sm font-semibold">
+              {camState === "requesting" ? "Waiting for camera permission…" : "Starting camera…"}
+            </p>
           </div>
         )}
 
@@ -571,7 +659,8 @@ function CameraStage({
             </button>
             <button
               onClick={onCapture}
-              className="grid h-20 w-20 place-items-center rounded-full bg-white shadow-2xl transition-transform hover:scale-105 active:scale-95"
+              disabled={camState !== "ready"}
+              className="grid h-20 w-20 place-items-center rounded-full bg-white shadow-2xl transition-transform hover:scale-105 active:scale-95 disabled:opacity-40"
               aria-label="Capture"
             >
               <div className="h-16 w-16 rounded-full border-4 border-black/80" />
