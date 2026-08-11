@@ -1,4 +1,5 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -8,16 +9,16 @@ import { supabase } from "@/integrations/supabase/client";
  * browser persistence layer and silently refreshed when the access token is
  * stale — a transient network failure must never sign the user out.
  */
-async function restoreSession() {
+async function restoreSession(): Promise<Session | null> {
   const { data, error } = await supabase.auth.getSession();
   if (error) return null;
   if (data.session) return data.session;
 
   // Supabase may still be rehydrating storage on a cold start; give it one tick
   // and wait for INITIAL_SESSION before deciding the user is signed out.
-  return await new Promise<typeof data.session>((resolve) => {
+  return await new Promise<Session | null>((resolve) => {
     let settled = false;
-    const finish = (s: typeof data.session) => {
+    const finish = (s: Session | null) => {
       if (settled) return;
       settled = true;
       sub.data.subscription.unsubscribe();
