@@ -6,14 +6,20 @@ import { toast } from "sonner";
 import petEgg from "@/assets/pet-egg.png";
 
 export const Route = createFileRoute("/auth")({
+  ssr: false,
   head: () => ({
     meta: [
       { title: "Sign in — Tama" },
       { name: "description", content: "Sign in or create your Tama account to start growing your habit pet." },
     ],
   }),
+  beforeLoad: async () => {
+    const { data } = await supabase.auth.getSession();
+    if (data.session?.user) throw redirect({ to: "/app" });
+  },
   component: AuthPage,
 });
+
 
 function AuthPage() {
   const navigate = useNavigate();
