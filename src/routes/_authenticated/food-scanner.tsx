@@ -549,7 +549,7 @@ function PermissionCard({
       <h2 className="mb-2 text-2xl font-bold">Scan any meal, drink, or snack</h2>
       <p className="mx-auto mb-6 max-w-md text-sm text-muted-foreground">
         {error
-          ? "We couldn't access your camera. You can still upload a photo from your gallery."
+          ? "Camera access is needed to scan your meal. You can also upload a photo instead."
           : "Point at your food — the AI recognizes multiple items, packaged foods, and drinks, then gives calories, macros, micros, and a personalized health score."}
       </p>
       <div className="flex flex-col items-center gap-2 sm:flex-row sm:justify-center">
@@ -557,13 +557,13 @@ function PermissionCard({
           onClick={onGrant}
           className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-semibold text-primary-foreground shadow-lg"
         >
-          <Camera size={16} /> {error ? "Retry Camera" : "Open Camera"}
+          <Camera size={16} /> {error ? "Allow Camera" : "Open Camera"}
         </button>
         <button
           onClick={onGallery}
           className="inline-flex items-center gap-2 rounded-full border-2 border-input bg-background px-6 py-3 font-semibold hover:bg-muted"
         >
-          <ImageIcon size={16} /> Upload From Gallery
+          <ImageIcon size={16} /> Upload Photo Instead
         </button>
       </div>
       {error && <p className="mt-4 text-xs text-muted-foreground">{error}</p>}
