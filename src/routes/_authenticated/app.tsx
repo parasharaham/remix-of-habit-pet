@@ -7,7 +7,8 @@ import { getPetStatus, syncDecay } from "@/lib/pet.functions";
 import { completeHabit, listHabits, type HabitDTO } from "@/lib/habits.functions";
 import { getOnboardingStatus } from "@/lib/onboarding.functions";
 import { getProfile } from "@/lib/profile.functions";
-import { getMyActivity } from "@/lib/community.functions";
+import { getMacroTargets } from "@/lib/targets.functions";
+import { getNutritionSummary, listMealsByDate } from "@/lib/food.functions";
 import { AppShell } from "@/components/AppShell";
 import { PetEmoji } from "@/components/PetEmoji";
 import { StatBar } from "@/components/StatBar";
@@ -15,24 +16,26 @@ import {
   Card,
   Confetti,
   EmptyState,
+  GoalBar,
   Pill,
   ProgressRing,
   SectionHeader,
   Skeleton,
   SkeletonCard,
-  StatTile,
 } from "@/components/ui-kit";
 import {
+  BarChart3,
   Camera,
   Check,
+  ChevronRight,
   Coins,
+  Droplets,
   Flame,
   ListChecks,
-  Plus,
+  Settings,
   Sparkles,
   Target,
-  Trophy,
-  Zap,
+  Utensils,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/app")({
@@ -49,23 +52,6 @@ export const Route = createFileRoute("/_authenticated/app")({
   component: Dashboard,
 });
 
-const QUOTES = [
-  "Small steps, every day, become a whole new you.",
-  "Your pet grows when you do. Let's make today count.",
-  "Consistency beats intensity — one habit at a time.",
-  "Progress is a streak of ordinary days done well.",
-  "Show up for yourself today. Your pet is watching.",
-];
-
-function feedIcon(kind: string) {
-  if (kind === "habit_completed") return "✅";
-  if (kind === "level_up") return "⬆️";
-  if (kind === "evolution") return "🐣";
-  if (kind === "achievement") return "🏆";
-  if (kind === "purchase") return "🛍️";
-  return "✨";
-}
-
 function greeting() {
   const h = new Date().getHours();
   if (h < 5) return "Still up";
@@ -74,13 +60,22 @@ function greeting() {
   return "Good evening";
 }
 
+const MEAL_SLOTS = [
+  { id: "breakfast", label: "Breakfast", emoji: "🥐" },
+  { id: "lunch", label: "Lunch", emoji: "🥗" },
+  { id: "dinner", label: "Dinner", emoji: "🍽️" },
+  { id: "snack", label: "Snack", emoji: "🍎" },
+] as const;
+
 function Dashboard() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const fetchPet = useServerFn(getPetStatus);
   const fetchHabits = useServerFn(listHabits);
   const fetchProfile = useServerFn(getProfile);
-  const fetchActivity = useServerFn(getMyActivity);
+  const fetchTargets = useServerFn(getMacroTargets);
+  const fetchSummary = useServerFn(getNutritionSummary);
+  const fetchMeals = useServerFn(listMealsByDate);
   const fnSync = useServerFn(syncDecay);
   const fnComplete = useServerFn(completeHabit);
 
@@ -99,9 +94,9 @@ function Dashboard() {
   const pet = useQuery({ queryKey: ["pet"], queryFn: () => fetchPet() });
   const habits = useQuery({ queryKey: ["habits"], queryFn: () => fetchHabits() });
   const profile = useQuery({ queryKey: ["profile"], queryFn: () => fetchProfile() });
-  const activity = useQuery({ queryKey: ["activity", "me"], queryFn: () => fetchActivity() });
-
-  const quote = useMemo(() => QUOTES[new Date().getDate() % QUOTES.length], []);
+  const targets = useQuery({ queryKey: ["macro-targets"], queryFn: () => fetchTargets({ data: {} }) });
+  const nutrition = useQuery({ queryKey: ["nutrition", "summary"], queryFn: () => fetchSummary() });
+  const meals = useQuery({ queryKey: ["meals", "today"], queryFn: () => fetchMeals({ data: {} }) });
 
   const complete = useMutation({
     mutationFn: (id: string) => fnComplete({ data: { id } }),
@@ -120,7 +115,7 @@ function Dashboard() {
             : h,
         ),
       );
-      if ("vibrate" in navigator) navigator.vibrate?.(30);
+      if (typeof navigator !== "undefined" && "vibrate" in navigator) navigator.vibrate?.(30);
       return { prev };
     },
     onError: (_e, _id, ctx) => {
@@ -133,7 +128,6 @@ function Dashboard() {
       );
       qc.invalidateQueries({ queryKey: ["pet"] });
       qc.invalidateQueries({ queryKey: ["profile"] });
-      qc.invalidateQueries({ queryKey: ["activity", "me"] });
       setPulse((p) => p + 1);
       if (res.pet.levels_gained > 0) {
         setCelebrate((c) => c + 1);
@@ -153,13 +147,45 @@ function Dashboard() {
   const totalHabits = todaysHabits.length;
   const bestStreak = Math.max(0, ...todaysHabits.map((h) => h.current_streak));
   const dayDone = totalHabits > 0 && completedToday === totalHabits;
-  const name = profile.data?.username || profile.data?.full_name || "friend";
+  const firstName = (profile.data?.full_name || profile.data?.username || "friend").split(" ")[0];
+
+  const t = targets.data;
+  const eaten = t?.today;
+  const fiberTarget = t ? Math.max(20, Math.round(t.calories / 1000) * 14) : 30;
+
+  const loggedTypes = new Set((meals.data ?? []).map((m) => m.meal_type));
+  const weekly = nutrition.data?.weekly ?? [];
+  const weekMax = Math.max(1, ...weekly.map((d) => d.calories));
+
+  const coachLine = useMemo(() => {
+    if (!t || !nutrition.data) return null;
+    const mealsLogged = nutrition.data.meals_logged;
+    const proteinLeft = Math.max(0, t.protein_g - t.today.protein_g);
+    const calsLeft = Math.max(0, t.calories - t.today.calories);
+    if (mealsLogged === 0)
+      return `No meals logged yet today. Scan your first meal to start tracking your ${t.calories.toLocaleString()} kcal target.`;
+    const base = `You've logged ${mealsLogged} meal${mealsLogged === 1 ? "" : "s"} today.`;
+    if (proteinLeft > 15) return `${base} You're still ${Math.round(proteinLeft)}g short on protein.`;
+    if (calsLeft > 250) return `${base} About ${Math.round(calsLeft)} kcal left in your budget.`;
+    if (t.today.calories > t.calories) return `${base} You're ${Math.round(t.today.calories - t.calories)} kcal over target — a walk would help.`;
+    return `${base} You're right on track with calories and protein. Nice work.`;
+  }, [t, nutrition.data]);
+
+  const petMood = useMemo(() => {
+    const p = pet.data;
+    if (!p) return null;
+    const score = (p.health_points + p.happiness_points) / 2;
+    if (score >= 80) return { text: "Your pet is feeling great!", emoji: "😄", tone: "success" as const };
+    if (score >= 55) return { text: "Your pet is doing okay — keep it up.", emoji: "🙂", tone: "info" as const };
+    if (score >= 30) return { text: "Your pet needs some care today.", emoji: "😕", tone: "warning" as const };
+    return { text: "Your pet really misses you.", emoji: "😢", tone: "danger" as const };
+  }, [pet.data]);
 
   return (
     <AppShell isAdmin={profile.data?.is_admin}>
       <Confetti fire={celebrate} />
 
-      {/* Greeting */}
+      {/* ---------------------------------------------------------- header */}
       <header className="mb-6 animate-[rise-in_500ms_cubic-bezier(.22,1,.36,1)_both]">
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
           <div className="min-w-0">
@@ -167,62 +193,139 @@ function Dashboard() {
               {new Date().toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" })}
             </p>
             <h1 className="truncate text-2xl font-bold md:text-4xl">
-              {greeting()}, {name} 👋
+              {greeting()}, {firstName}
             </h1>
-            <p className="mt-1 text-sm text-muted-foreground">{quote}</p>
+            <p className="mt-1 text-sm text-muted-foreground">Let's keep your HabitPet healthy today.</p>
           </div>
-          <div className="hidden shrink-0 items-center gap-2 sm:flex">
-            <Pill tone="warning">
-              <Coins size={12} /> {profile.data?.coins ?? 0}
-            </Pill>
-            <Pill tone="danger">
-              <Flame size={12} /> {bestStreak}d
-            </Pill>
+          <div className="flex shrink-0 items-center gap-2">
+            <Link
+              to="/pet"
+              aria-label="Your pet"
+              className="focus-ring grid h-11 w-11 place-items-center rounded-2xl bg-[var(--gradient-primary)] text-xl shadow-card transition hover:-translate-y-0.5"
+            >
+              {pet.data ? <PetEmoji type={pet.data.pet_type} stage={pet.data.pet_stage} size="sm" /> : "🐣"}
+            </Link>
+            <Link
+              to="/settings"
+              aria-label="Settings"
+              className="focus-ring grid h-11 w-11 place-items-center rounded-2xl bg-muted text-foreground/70 transition hover:bg-muted/70"
+            >
+              <Settings size={18} />
+            </Link>
           </div>
         </div>
       </header>
 
-      {/* Quick actions */}
-      <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
-        <QuickAction to="/food-scanner" icon={<Camera size={18} />} label="Scan a meal" tone="var(--brand-blue)" />
-        <QuickAction to="/habits" icon={<Plus size={18} />} label="Add habit" tone="var(--brand-green)" />
-        <QuickAction to="/nutrition" icon={<Target size={18} />} label="Nutrition" tone="var(--brand-orange)" />
-        <QuickAction to="/achievements" icon={<Trophy size={18} />} label="Achievements" tone="var(--brand-purple)" />
-      </div>
+      <div className="grid gap-5 lg:grid-cols-[6fr_5fr]">
+        {/* ------------------------------------------- today's progress hero */}
+        <Card className="relative overflow-hidden bg-[var(--gradient-aurora)] lg:col-span-2">
+          <div className="pointer-events-none absolute -right-16 -top-16 h-52 w-52 rounded-full bg-primary/25 blur-3xl" />
+          <SectionHeader
+            title="Today's Progress"
+            subtitle={t ? t.note : "Personalized to your goal"}
+            icon={Target}
+            action={{ label: "Nutrition", to: "/nutrition" }}
+          />
+          {!t || !eaten ? (
+            <div className="grid gap-5 md:grid-cols-[auto_minmax(0,1fr)]">
+              <Skeleton className="h-40 w-40 rounded-full" />
+              <div className="space-y-4">
+                {[0, 1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-6" />
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="grid items-center gap-6 md:grid-cols-[auto_minmax(0,1fr)]">
+              <div className="mx-auto">
+                <ProgressRing
+                  value={eaten.calories}
+                  max={t.calories}
+                  size={168}
+                  stroke={14}
+                  color="var(--primary)"
+                  label={
+                    <span className="text-3xl font-bold">{Math.round(eaten.calories).toLocaleString()}</span>
+                  }
+                  caption={`of ${t.calories.toLocaleString()} kcal`}
+                />
+                <p className="mt-2 text-center text-xs font-semibold text-muted-foreground">
+                  {Math.max(0, t.calories - eaten.calories).toLocaleString()} kcal left
+                </p>
+              </div>
+              <div className="space-y-3.5 rounded-3xl bg-card/70 p-4 backdrop-blur">
+                <GoalBar label="Protein" value={Math.round(eaten.protein_g)} target={t.protein_g} unit="g" color="var(--brand-blue)" />
+                <GoalBar label="Carbs" value={Math.round(eaten.carbs_g)} target={t.carbs_g} unit="g" color="var(--brand-orange)" />
+                <GoalBar label="Fat" value={Math.round(eaten.fat_g)} target={t.fat_g} unit="g" color="var(--brand-purple)" />
+                <GoalBar
+                  label="Fiber"
+                  value={Math.round(nutrition.data?.fiber_g ?? 0)}
+                  target={fiberTarget}
+                  unit="g"
+                  color="var(--brand-green)"
+                />
+                <GoalBar
+                  label="Water"
+                  value={Math.round(eaten.water_ml)}
+                  target={t.water_ml}
+                  unit="ml"
+                  color="var(--brand-cyan)"
+                />
+              </div>
+            </div>
+          )}
+        </Card>
 
-      <div className="grid gap-5 lg:grid-cols-[5fr_4fr]">
-        {/* Pet hero */}
-        <Card className="relative overflow-hidden bg-[var(--gradient-aurora)]">
-          <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-primary/20 blur-3xl" />
+        {/* --------------------------------------------------------- pet card */}
+        <Card className="relative overflow-hidden">
           {pet.isLoading || !pet.data ? (
             <div className="space-y-4 py-6">
-              <Skeleton className="mx-auto h-40 w-40 rounded-full" />
+              <Skeleton className="mx-auto h-32 w-32 rounded-full" />
               <Skeleton className="mx-auto h-6 w-32" />
               <Skeleton className="h-3" />
-              <Skeleton className="h-3 w-4/5" />
             </div>
           ) : (
             <>
-              <div key={pulse} className="pet-pop">
-                <div className="animate-[float-slow_6s_ease-in-out_infinite]">
-                  <PetEmoji type={pet.data.pet_type} stage={pet.data.pet_stage} size="xl" />
+              <div className="flex items-center gap-4">
+                <div key={pulse} className="pet-pop shrink-0">
+                  <div className="animate-[float-slow_6s_ease-in-out_infinite]">
+                    <PetEmoji type={pet.data.pet_type} stage={pet.data.pet_stage} size="lg" />
+                  </div>
+                </div>
+                <div className="min-w-0">
+                  <h2 className="truncate text-xl font-bold">{pet.data.pet_name}</h2>
+                  <p className="text-sm capitalize text-muted-foreground">
+                    Level {pet.data.current_level} · {pet.data.pet_stage}
+                  </p>
+                  {petMood && (
+                    <span className="mt-2 inline-block">
+                      <Pill tone={petMood.tone}>
+                        {petMood.emoji} {petMood.text}
+                      </Pill>
+                    </span>
+                  )}
                 </div>
               </div>
-              <div className="mt-3 text-center">
-                <h2 className="text-2xl font-bold">{pet.data.pet_name}</h2>
-                <p className="text-sm capitalize text-muted-foreground">
-                  Level {pet.data.current_level} · {pet.data.pet_stage}
-                </p>
-              </div>
-              <div className="mt-5 space-y-3.5 rounded-3xl bg-card/70 p-4 backdrop-blur">
+              <div className="mt-5 space-y-3.5 rounded-3xl bg-muted/40 p-4">
                 <StatBar label="Health" value={pet.data.health_points} max={100} variant="hp" icon="💚" />
                 <StatBar label="Happiness" value={pet.data.happiness_points} max={100} variant="happy" icon="😊" />
-                <StatBar label="XP" value={pet.data.xp_into_level} max={pet.data.xp_to_next} variant="xp" icon="⭐" />
+                <StatBar label="Energy" value={pet.data.energy_points} max={100} variant="xp" icon="⚡" />
               </div>
-              <div className="mt-4 grid grid-cols-3 gap-3">
-                <StatTile icon={<Coins size={16} />} tone="orange" label="Coins" value={profile.data?.coins ?? 0} />
-                <StatTile icon={<Flame size={16} />} tone="pink" label="Streak" value={`${bestStreak}d`} />
-                <StatTile icon={<Zap size={16} />} tone="blue" label="Energy" value={pet.data.energy_points} />
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                <div className="rounded-2xl bg-[var(--gradient-sunrise)] p-4">
+                  <div className="flex items-center gap-2 text-2xl font-bold">
+                    <Flame size={20} /> {bestStreak}
+                  </div>
+                  <p className="text-[11px] font-bold uppercase tracking-wide text-foreground/70">
+                    Day streak {bestStreak > 0 ? "· keep going!" : ""}
+                  </p>
+                </div>
+                <div className="rounded-2xl bg-muted/50 p-4">
+                  <div className="flex items-center gap-2 text-2xl font-bold">
+                    <Coins size={20} /> {profile.data?.coins ?? 0}
+                  </div>
+                  <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">Coins</p>
+                </div>
               </div>
               <Link
                 to="/pet"
@@ -234,7 +337,99 @@ function Dashboard() {
           )}
         </Card>
 
-        {/* Today's habits */}
+        {/* ----------------------------------------------------- AI coach card */}
+        <Card className="flex flex-col">
+          <SectionHeader title="AI Coach" subtitle="Based on today's data" icon={Sparkles} />
+          {coachLine ? (
+            <p className="text-sm leading-relaxed text-foreground/85">{coachLine}</p>
+          ) : (
+            <Skeleton className="h-12" />
+          )}
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Link
+              to="/nutrition"
+              className="focus-ring inline-flex items-center gap-1 rounded-full bg-primary px-4 py-2 text-xs font-bold text-primary-foreground"
+            >
+              View Nutrition <ChevronRight size={14} />
+            </Link>
+            <Link
+              to="/coach"
+              className="focus-ring inline-flex items-center gap-1 rounded-full bg-muted px-4 py-2 text-xs font-bold"
+            >
+              Ask the coach
+            </Link>
+          </div>
+
+          {/* meals */}
+          <div className="mt-6">
+            <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-muted-foreground">Today's meals</h3>
+            <div className="grid grid-cols-2 gap-2">
+              {MEAL_SLOTS.map((m) => {
+                const done = loggedTypes.has(m.id);
+                return (
+                  <Link
+                    key={m.id}
+                    to="/food-scanner"
+                    className={`focus-ring flex items-center gap-2 rounded-2xl border p-3 text-sm font-semibold transition hover:-translate-y-0.5 ${
+                      done ? "border-success/30 bg-success/10" : "border-border bg-background"
+                    }`}
+                  >
+                    <span className="text-lg">{m.emoji}</span>
+                    <span className="min-w-0 flex-1 truncate">{m.label}</span>
+                    {done ? (
+                      <Check size={16} className="shrink-0 text-success" strokeWidth={3} />
+                    ) : (
+                      <span className="shrink-0 text-xs text-muted-foreground">Log</span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </Card>
+
+        {/* -------------------------------------------------------- today's focus */}
+        <Card className="lg:col-span-2">
+          <SectionHeader title="Today's Focus" subtitle="A few things that move the needle" icon={Sparkles} />
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <FocusCard
+              to="/food-scanner"
+              icon={<Camera size={18} />}
+              tone="var(--brand-blue)"
+              title="Scan a Meal"
+              desc="AI calories & macros"
+              status={
+                nutrition.data ? `${nutrition.data.meals_logged} logged today` : "—"
+              }
+            />
+            <FocusCard
+              to="/habits"
+              icon={<ListChecks size={18} />}
+              tone="var(--brand-green)"
+              title="Complete a Habit"
+              desc="Feed your pet XP"
+              status={totalHabits ? `${completedToday}/${totalHabits} done` : "No habits yet"}
+            />
+            <FocusCard
+              to="/nutrition"
+              icon={<Droplets size={18} />}
+              tone="var(--brand-cyan)"
+              title="Drink Water"
+              desc="Stay hydrated"
+              status={t ? `${Math.round(eaten?.water_ml ?? 0)} / ${t.water_ml} ml` : "—"}
+            />
+            <FocusCard
+              to="/workout-planner"
+              icon={<Utensils size={18} />}
+              tone="var(--brand-orange)"
+              title="Move"
+              desc="Plan today's session"
+              status="Open planner"
+            />
+          </div>
+        </Card>
+
+        {/* -------------------------------------------------------------- habits */}
         {habits.isLoading ? (
           <SkeletonCard lines={4} />
         ) : (
@@ -247,23 +442,18 @@ function Dashboard() {
             />
 
             {totalHabits > 0 && (
-              <div className="mb-5 flex items-center gap-4 rounded-3xl bg-muted/40 p-4">
-                <ProgressRing
-                  value={completedToday}
-                  max={totalHabits}
-                  size={96}
-                  stroke={10}
-                  color={dayDone ? "var(--success)" : "var(--primary)"}
-                  label={`${completedToday}/${totalHabits}`}
-                  caption="today"
-                />
-                <div className="min-w-0">
-                  <p className="font-bold">{dayDone ? "Day complete! 🎉" : "Keep going"}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {dayDone
-                      ? "Your pet is thriving. Come back tomorrow for a new streak day."
-                      : `${totalHabits - completedToday} habit${totalHabits - completedToday === 1 ? "" : "s"} left to feed your pet.`}
-                  </p>
+              <div className="mb-5">
+                <div className="mb-1.5 flex items-baseline justify-between text-sm">
+                  <span className="font-bold">{dayDone ? "Day complete! 🎉" : "Keep going"}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {completedToday} / {totalHabits} habits
+                  </span>
+                </div>
+                <div className="h-3 overflow-hidden rounded-full bg-muted">
+                  <div
+                    className="h-full rounded-full bg-primary transition-[width] duration-700"
+                    style={{ width: `${(completedToday / Math.max(1, totalHabits)) * 100}%` }}
+                  />
                 </div>
               </div>
             )}
@@ -317,72 +507,48 @@ function Dashboard() {
           </Card>
         )}
 
-        {/* Lifetime stats */}
-        <Card>
-          <SectionHeader title="Lifetime progress" subtitle="Everything you've earned so far" icon={Trophy} />
-          <div className="grid grid-cols-2 gap-3">
-            <BigStat icon="✅" label="Habits done" value={profile.data?.total_habits_completed ?? 0} />
-            <BigStat icon="⭐" label="XP earned" value={profile.data?.total_xp_earned ?? 0} />
-            <BigStat icon="🪙" label="Coins earned" value={profile.data?.total_coins_earned ?? 0} />
-            <BigStat icon="🔥" label="Best streak" value={Math.max(0, ...todaysHabits.map((h) => h.longest_streak))} />
-          </div>
-        </Card>
-
-        {/* Recent activity */}
+        {/* ---------------------------------------------------- analytics preview */}
         <Card>
           <SectionHeader
-            title="Recent activity"
-            subtitle="Your latest wins"
-            icon={Sparkles}
-            action={{ label: "Community", to: "/community" }}
+            title="Your Week"
+            subtitle="Calories logged over the last 7 days"
+            icon={BarChart3}
+            action={{ label: "Analytics", to: "/analytics" }}
           />
-          {activity.isLoading ? (
-            <div className="space-y-2">
-              {[0, 1, 2].map((i) => (
-                <Skeleton key={i} className="h-12" />
-              ))}
-            </div>
-          ) : (activity.data ?? []).length === 0 ? (
+          {nutrition.isLoading ? (
+            <Skeleton className="h-40" />
+          ) : weekly.every((d) => d.calories === 0) ? (
             <EmptyState
-              emoji="📖"
-              title="Your story starts here"
-              description="Complete a habit or scan a meal and it'll show up in this log."
+              emoji="📈"
+              title="No data yet this week"
+              description="Log a meal and your 7-day trend will appear here."
+              action={{ label: "Scan a meal", to: "/food-scanner" }}
             />
           ) : (
-            <ul className="space-y-2">
-              {(activity.data ?? []).slice(0, 8).map((a, i) => (
-                <li
-                  key={a.id}
-                  style={{ animationDelay: `${i * 35}ms` }}
-                  className="flex animate-[rise-in_450ms_cubic-bezier(.22,1,.36,1)_both] items-center gap-3 rounded-2xl bg-muted/40 p-3 text-sm transition hover:bg-muted/70"
-                >
-                  <span className="text-xl">{feedIcon(a.kind)}</span>
-                  <span className="min-w-0 flex-1">
-                    {a.kind === "habit_completed" && (
-                      <>
-                        Completed <b>{a.payload.title}</b> · +{a.payload.coins} 🪙
-                      </>
-                    )}
-                    {a.kind === "level_up" && (
-                      <>
-                        Reached level <b>{a.payload.level}</b>
-                      </>
-                    )}
-                    {a.kind === "achievement" && (
-                      <>
-                        Unlocked {a.payload.badge} <b>{a.payload.title}</b>
-                      </>
-                    )}
-                    {a.kind === "purchase" && (
-                      <>
-                        Bought {a.payload.image} <b>{a.payload.name}</b>
-                      </>
-                    )}
-                  </span>
-                  <span className="shrink-0 text-xs text-muted-foreground">{timeAgo(a.created_at)}</span>
-                </li>
-              ))}
-            </ul>
+            <div className="flex h-44 items-end gap-2">
+              {weekly.map((d) => {
+                const pct = (d.calories / weekMax) * 100;
+                const isToday = d.date === nutrition.data?.date;
+                return (
+                  <div key={d.date} className="flex min-w-0 flex-1 flex-col items-center gap-2">
+                    <span className="text-[10px] font-semibold text-muted-foreground">
+                      {d.calories > 0 ? Math.round(d.calories) : ""}
+                    </span>
+                    <div className="flex h-full w-full items-end">
+                      <div
+                        className={`w-full rounded-t-xl transition-[height] duration-700 ${
+                          isToday ? "bg-primary" : "bg-primary/35"
+                        }`}
+                        style={{ height: `${Math.max(4, pct)}%` }}
+                      />
+                    </div>
+                    <span className="text-[10px] font-bold uppercase text-muted-foreground">
+                      {new Date(d.date + "T00:00:00").toLocaleDateString(undefined, { weekday: "narrow" })}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
           )}
         </Card>
       </div>
@@ -390,47 +556,35 @@ function Dashboard() {
   );
 }
 
-function QuickAction({
+function FocusCard({
   to,
   icon,
-  label,
   tone,
+  title,
+  desc,
+  status,
 }: {
   to: string;
   icon: React.ReactNode;
-  label: string;
   tone: string;
+  title: string;
+  desc: string;
+  status: string;
 }) {
   return (
     <Link
       to={to}
-      className="focus-ring group flex items-center gap-3 rounded-2xl border border-border/60 bg-card p-3.5 shadow-card transition hover:-translate-y-1 hover:shadow-pet active:scale-[0.98]"
+      className="focus-ring group flex flex-col gap-2 rounded-2xl border border-border/60 bg-background p-4 shadow-card transition hover:-translate-y-1 hover:shadow-pet active:scale-[0.98]"
     >
       <span
-        className="grid h-10 w-10 shrink-0 place-items-center rounded-xl text-white transition group-hover:scale-110"
+        className="grid h-10 w-10 place-items-center rounded-xl text-foreground transition group-hover:scale-110"
         style={{ background: tone }}
       >
         {icon}
       </span>
-      <span className="min-w-0 truncate text-sm font-bold">{label}</span>
+      <span className="text-sm font-bold">{title}</span>
+      <span className="text-xs text-muted-foreground">{desc}</span>
+      <span className="mt-auto pt-1 text-[11px] font-bold uppercase tracking-wide text-primary">{status}</span>
     </Link>
   );
-}
-
-function BigStat({ icon, label, value }: { icon: string; label: string; value: number }) {
-  return (
-    <div className="rounded-2xl bg-[var(--gradient-meadow)] p-4 transition hover:-translate-y-0.5">
-      <div className="text-2xl">{icon}</div>
-      <div className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</div>
-      <div className="text-2xl font-bold">{value.toLocaleString()}</div>
-    </div>
-  );
-}
-
-function timeAgo(iso: string): string {
-  const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
-  if (s < 60) return `${s}s`;
-  if (s < 3600) return `${Math.floor(s / 60)}m`;
-  if (s < 86400) return `${Math.floor(s / 3600)}h`;
-  return `${Math.floor(s / 86400)}d`;
 }
