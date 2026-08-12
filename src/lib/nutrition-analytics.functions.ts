@@ -252,5 +252,7 @@ export const getNutritionAnalytics = createServerFn({ method: "POST" })
       insights,
       today_meals: todayMeals,
       has_data: mealsLogged > 0,
+      advanced,
+      range,
     };
   });
