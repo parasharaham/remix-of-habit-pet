@@ -49,6 +49,9 @@ export interface NutritionAnalyticsDTO {
   insights: string[];
   today_meals: MealQuality[];
   has_data: boolean;
+  /** false on Free: history is limited to the last 7 days. */
+  advanced: boolean;
+  range: string;
 }
 
 function dayKey(d: Date) {

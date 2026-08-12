@@ -31,6 +31,8 @@ export interface WorkoutPlanDTO {
   sleep_target_hours: number;
   fuel_tip: string;
   coach_note: string;
+  /** true when the plan was built from the user's full profile (Pro). */
+  personalized: boolean;
 }
 
 const PlanSchema = z.object({

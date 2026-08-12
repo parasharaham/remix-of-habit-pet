@@ -30,6 +30,8 @@ export interface MealPlanDTO {
   grocery_list: string[];
   training_tip: string;
   coach_note: string;
+  /** true when the plan was built from the user's full profile (Pro). */
+  personalized: boolean;
 }
 
 const PlanSchema = z.object({
