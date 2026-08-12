@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { getTier, UpgradeRequiredError } from "./subscription-guard";
+import { ENTITLEMENTS } from "./entitlements";
 import {
   applyXpGain,
   clamp,
@@ -87,6 +89,24 @@ export const createHabit = createServerFn({ method: "POST" })
   .inputValidator((d) => CreateSchema.parse(d))
   .handler(async ({ data, context }): Promise<HabitDTO> => {
     const { supabase, userId } = context;
+
+    // Free plan caps active custom habits. Existing habits are never removed.
+    const tier = await getTier(supabase, userId);
+    if (tier === "free") {
+      const { count } = await supabase
+        .from("habits")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .eq("is_active", true);
+      const limit = ENTITLEMENTS.free.custom_habits;
+      if ((count ?? 0) >= limit) {
+        throw new UpgradeRequiredError(
+          "habit_limit",
+          `You've reached your ${limit}-habit Free limit. Upgrade to Pro to create unlimited habits.`,
+        );
+      }
+    }
+
     const { data: row, error } = await supabase
       .from("habits")
       .insert({

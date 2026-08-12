@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { getTier } from "./subscription-guard";
 import { computeTargets, type NutritionTargets } from "./nutrition-targets";
 import { CLASSIFICATIONS, type Classification } from "./food.functions";
 
@@ -48,6 +49,8 @@ export interface NutritionAnalyticsDTO {
   insights: string[];
   today_meals: MealQuality[];
   has_data: boolean;
+  /** false on Free: history is limited to the last 7 days. */
+  advanced: boolean;
 }
 
 function dayKey(d: Date) {
@@ -62,7 +65,11 @@ export const getNutritionAnalytics = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ range: z.enum(["7d", "30d", "90d", "1y"]).default("7d") }).parse(d ?? {}))
   .handler(async ({ data, context }): Promise<NutritionAnalyticsDTO> => {
     const { supabase, userId } = context;
-    const days = RANGE_DAYS[data.range];
+    // Free plans see the last 7 days; Pro unlocks the longer ranges.
+    const tier = await getTier(supabase, userId);
+    const advanced = tier === "pro";
+    const range = advanced ? data.range : "7d";
+    const days = RANGE_DAYS[range];
     const today = dayKey(new Date());
     const from = dayKey(new Date(Date.now() - (days - 1) * 86400000));
 
@@ -231,7 +238,7 @@ export const getNutritionAnalytics = createServerFn({ method: "POST" })
     const todayPoint = series[series.length - 1] ?? empty(today);
 
     return {
-      range: data.range,
+      range,
       targets,
       days: series,
       today: todayPoint,
@@ -244,5 +251,6 @@ export const getNutritionAnalytics = createServerFn({ method: "POST" })
       insights,
       today_meals: todayMeals,
       has_data: mealsLogged > 0,
+      advanced,
     };
   });

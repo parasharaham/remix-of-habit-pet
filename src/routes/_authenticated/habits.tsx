@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSubscription } from "@/hooks/useSubscription";
+import { UpgradeToProModal } from "@/components/UpgradeToProModal";
+import { trackSubEvent } from "@/lib/sub-analytics";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import {
@@ -43,6 +46,9 @@ function HabitsPage() {
   const profile = useQuery({ queryKey: ["profile"], queryFn: () => fetchProfile() });
 
   const [showForm, setShowForm] = useState(false);
+  const [showUpgrade, setShowUpgrade] = useState(false);
+  const sub = useSubscription();
+  const habitVerdict = sub.can("custom_habit");
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "active" | "paused">("all");
   const [aiPreview, setAiPreview] = useState<GeneratedHabit[] | null>(null);
@@ -73,7 +79,16 @@ function HabitsPage() {
       setForm({ title: "", description: "", frequency: "daily", category: "custom", difficulty: "medium" });
       toast.success("Habit added");
     },
-    onError: (e) => toast.error(e instanceof Error ? e.message : "Couldn't add"),
+    onError: (e) => {
+      const msg = e instanceof Error ? e.message : "Couldn't add";
+      if (/Free limit|Pro/i.test(msg)) {
+        trackSubEvent("feature_limit_reached", { feature: "custom_habit" });
+        setShowForm(false);
+        setShowUpgrade(true);
+        return;
+      }
+      toast.error(msg);
+    },
   });
 
   const togglePause = useMutation({
@@ -156,7 +171,14 @@ function HabitsPage() {
             <Sparkles size={16} /> {generate.isPending ? "Generating…" : "AI plan"}
           </button>
           <button
-            onClick={() => setShowForm(true)}
+            onClick={() => {
+              if (!habitVerdict.allowed) {
+                trackSubEvent("feature_limit_reached", { feature: "custom_habit" });
+                setShowUpgrade(true);
+                return;
+              }
+              setShowForm(true);
+            }}
             disabled={overLimit}
             className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-card hover:-translate-y-0.5 disabled:opacity-50"
           >
@@ -343,7 +365,17 @@ function HabitsPage() {
           </article>
         ))}
       </div>
-    </AppShell>
+          <UpgradeToProModal
+        open={showUpgrade}
+        source="habit_limit"
+        onClose={() => setShowUpgrade(false)}
+        detail={
+          habitVerdict.limit
+            ? `You've reached your ${habitVerdict.limit}-habit Free limit. Your existing habits stay exactly as they are — Pro unlocks unlimited new ones.`
+            : undefined
+        }
+      />
+</AppShell>
   );
 }
 

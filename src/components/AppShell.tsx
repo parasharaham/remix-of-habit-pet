@@ -4,6 +4,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "motion/react";
 import { supabase } from "@/integrations/supabase/client";
 import { useReminders } from "@/lib/reminders";
+import { useSubscription } from "@/hooks/useSubscription";
+import { ProBadge } from "@/components/ProBadge";
+import { ProNudges } from "@/components/ProNudges";
 import {
   Home,
   ListChecks,
@@ -64,6 +67,7 @@ export function AppShell({ children, title, isAdmin }: Props) {
   const qc = useQueryClient();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { isPro } = useSubscription();
   useReminders();
 
   async function signOut() {
@@ -84,6 +88,7 @@ export function AppShell({ children, title, isAdmin }: Props) {
             🐣
           </span>
           <span className="text-gradient">HabitPet</span>
+          {isPro && <ProBadge className="ml-1" />}
         </Link>
         <nav className="flex-1 space-y-1 overflow-y-auto pr-1">
           {allNav.map(({ to, label, icon: Icon }) => {
@@ -109,6 +114,7 @@ export function AppShell({ children, title, isAdmin }: Props) {
             );
           })}
         </nav>
+        <ProNudges />
         <button
           onClick={signOut}
           className="focus-ring flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-bold text-muted-foreground transition hover:bg-muted hover:text-foreground"

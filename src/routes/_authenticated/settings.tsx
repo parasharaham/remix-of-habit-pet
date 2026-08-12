@@ -7,6 +7,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { deleteAccount, getProfile, updateProfile } from "@/lib/profile.functions";
 import { AppShell } from "@/components/AppShell";
 import { Moon, Sun } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { useSubscription } from "@/hooks/useSubscription";
+import { ProBadge } from "@/components/ProBadge";
+import { statusLabel } from "@/lib/entitlements";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({
@@ -26,6 +30,7 @@ function SettingsPage() {
   const fnDelete = useServerFn(deleteAccount);
 
   const profile = useQuery({ queryKey: ["profile"], queryFn: () => fetchProf() });
+  const sub = useSubscription();
 
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -97,6 +102,55 @@ function SettingsPage() {
               </button>
             </div>
           </div>
+        </section>
+
+        <section className="rounded-[2rem] bg-card p-6 shadow-pet md:p-8">
+          <div className="mb-4 flex items-center gap-2">
+            <h2 className="text-lg font-bold">Subscription</h2>
+            {sub.isPro && <ProBadge />}
+          </div>
+          <dl className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Current plan</dt>
+              <dd className="font-semibold">{sub.isPro ? "HabitPet Pro" : "Free"}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Status</dt>
+              <dd className="font-semibold">{statusLabel(sub.status)}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-muted-foreground">Billing</dt>
+              <dd className="font-semibold">
+                {sub.isPro ? (sub.data?.billing_interval === "yearly" ? "$49 / year" : "$5 / month") : "$0"}
+              </dd>
+            </div>
+            {sub.data?.current_period_end && (
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">
+                  {sub.data.cancel_at_period_end ? "Access ends" : "Renews"}
+                </dt>
+                <dd className="font-semibold">
+                  {new Date(sub.data.current_period_end).toLocaleDateString()}
+                </dd>
+              </div>
+            )}
+          </dl>
+          {sub.status === "payment_failed" && (
+            <p className="mt-3 rounded-2xl bg-destructive/10 p-3 text-sm text-destructive">
+              We couldn't process your Pro renewal. Update your payment method to keep Pro active.
+            </p>
+          )}
+          {sub.isPro && sub.daysUntilRenewal !== null && sub.daysUntilRenewal <= 7 && (
+            <p className="mt-3 rounded-2xl bg-muted/60 p-3 text-sm">
+              Your Pro plan {sub.data?.cancel_at_period_end ? "ends" : "renews"} in {sub.daysUntilRenewal} days.
+            </p>
+          )}
+          <Link
+            to="/pricing"
+            className="mt-4 inline-block rounded-full bg-primary px-5 py-2.5 font-semibold text-primary-foreground"
+          >
+            {sub.isPro ? "Manage Subscription" : "Upgrade to Pro"}
+          </Link>
         </section>
 
         <section className="rounded-[2rem] bg-card p-6 shadow-pet md:p-8">

@@ -20,6 +20,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedWorkoutPlannerRouteImport } from './routes/_authenticated/workout-planner'
 import { Route as AuthenticatedShopRouteImport } from './routes/_authenticated/shop'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedProSuccessRouteImport } from './routes/_authenticated/pro-success'
 import { Route as AuthenticatedPetRouteImport } from './routes/_authenticated/pet'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedNutritionRouteImport } from './routes/_authenticated/nutrition'
@@ -34,6 +35,7 @@ import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/ap
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAchievementsRouteImport } from './routes/_authenticated/achievements'
+import { Route as ApiPublicWebhooksPaddleRouteImport } from './routes/api/public/webhooks/paddle'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -88,6 +90,11 @@ const AuthenticatedShopRoute = AuthenticatedShopRouteImport.update({
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedProSuccessRoute = AuthenticatedProSuccessRouteImport.update({
+  id: '/pro-success',
+  path: '/pro-success',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedPetRoute = AuthenticatedPetRouteImport.update({
@@ -164,6 +171,11 @@ const AuthenticatedAchievementsRoute =
     path: '/achievements',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicWebhooksPaddleRoute = ApiPublicWebhooksPaddleRouteImport.update({
+  id: '/api/public/webhooks/paddle',
+  path: '/api/public/webhooks/paddle',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -187,9 +199,11 @@ export interface FileRoutesByFullPath {
   '/nutrition': typeof AuthenticatedNutritionRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/pet': typeof AuthenticatedPetRoute
+  '/pro-success': typeof AuthenticatedProSuccessRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/shop': typeof AuthenticatedShopRoute
   '/workout-planner': typeof AuthenticatedWorkoutPlannerRoute
+  '/api/public/webhooks/paddle': typeof ApiPublicWebhooksPaddleRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -213,9 +227,11 @@ export interface FileRoutesByTo {
   '/nutrition': typeof AuthenticatedNutritionRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/pet': typeof AuthenticatedPetRoute
+  '/pro-success': typeof AuthenticatedProSuccessRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/shop': typeof AuthenticatedShopRoute
   '/workout-planner': typeof AuthenticatedWorkoutPlannerRoute
+  '/api/public/webhooks/paddle': typeof ApiPublicWebhooksPaddleRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -241,9 +257,11 @@ export interface FileRoutesById {
   '/_authenticated/nutrition': typeof AuthenticatedNutritionRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/pet': typeof AuthenticatedPetRoute
+  '/_authenticated/pro-success': typeof AuthenticatedProSuccessRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/shop': typeof AuthenticatedShopRoute
   '/_authenticated/workout-planner': typeof AuthenticatedWorkoutPlannerRoute
+  '/api/public/webhooks/paddle': typeof ApiPublicWebhooksPaddleRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -269,9 +287,11 @@ export interface FileRouteTypes {
     | '/nutrition'
     | '/onboarding'
     | '/pet'
+    | '/pro-success'
     | '/settings'
     | '/shop'
     | '/workout-planner'
+    | '/api/public/webhooks/paddle'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -295,9 +315,11 @@ export interface FileRouteTypes {
     | '/nutrition'
     | '/onboarding'
     | '/pet'
+    | '/pro-success'
     | '/settings'
     | '/shop'
     | '/workout-planner'
+    | '/api/public/webhooks/paddle'
   id:
     | '__root__'
     | '/'
@@ -322,9 +344,11 @@ export interface FileRouteTypes {
     | '/_authenticated/nutrition'
     | '/_authenticated/onboarding'
     | '/_authenticated/pet'
+    | '/_authenticated/pro-success'
     | '/_authenticated/settings'
     | '/_authenticated/shop'
     | '/_authenticated/workout-planner'
+    | '/api/public/webhooks/paddle'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -336,6 +360,7 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   RefundPolicyRoute: typeof RefundPolicyRoute
   TermsRoute: typeof TermsRoute
+  ApiPublicWebhooksPaddleRoute: typeof ApiPublicWebhooksPaddleRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -415,6 +440,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/pro-success': {
+      id: '/_authenticated/pro-success'
+      path: '/pro-success'
+      fullPath: '/pro-success'
+      preLoaderRoute: typeof AuthenticatedProSuccessRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/pet': {
@@ -515,6 +547,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAchievementsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/webhooks/paddle': {
+      id: '/api/public/webhooks/paddle'
+      path: '/api/public/webhooks/paddle'
+      fullPath: '/api/public/webhooks/paddle'
+      preLoaderRoute: typeof ApiPublicWebhooksPaddleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -533,6 +572,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedNutritionRoute: typeof AuthenticatedNutritionRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedPetRoute: typeof AuthenticatedPetRoute
+  AuthenticatedProSuccessRoute: typeof AuthenticatedProSuccessRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedShopRoute: typeof AuthenticatedShopRoute
   AuthenticatedWorkoutPlannerRoute: typeof AuthenticatedWorkoutPlannerRoute
@@ -553,6 +593,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedNutritionRoute: AuthenticatedNutritionRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedPetRoute: AuthenticatedPetRoute,
+  AuthenticatedProSuccessRoute: AuthenticatedProSuccessRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedShopRoute: AuthenticatedShopRoute,
   AuthenticatedWorkoutPlannerRoute: AuthenticatedWorkoutPlannerRoute,
@@ -570,6 +611,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   RefundPolicyRoute: RefundPolicyRoute,
   TermsRoute: TermsRoute,
+  ApiPublicWebhooksPaddleRoute: ApiPublicWebhooksPaddleRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
