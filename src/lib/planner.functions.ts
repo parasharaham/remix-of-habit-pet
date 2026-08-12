@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { generateText, Output, NoObjectGeneratedError } from "ai";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { getTier } from "./subscription-guard";
 import { createLovableAiGatewayProvider } from "./ai-gateway.server";
 
 const MODEL = "google/gemini-3-flash-preview";
@@ -83,6 +84,11 @@ export const getMealPlan = createServerFn({ method: "POST" })
       .eq("id", userId)
       .maybeSingle();
 
+    // Free = basic plan; Pro = fully personalized from the user's profile.
+    const tier = await getTier(supabase, userId);
+    const personalized = tier === "pro";
+    const p = personalized ? prof : null;
+
     const aim = data.aim || prof?.fitness_goal || "general health";
     const apiKey = process.env["LOVABLE_API_KEY"];
     if (!apiKey) throw new Error("AI is not configured");
@@ -92,15 +98,15 @@ export const getMealPlan = createServerFn({ method: "POST" })
     const prompt = `Build ONE full day of eating for this person.
 
 Profile:
-- age: ${prof?.age ?? "unknown"}, sex: ${prof?.sex ?? "unknown"}
-- weight: ${prof?.weight_kg ?? "?"} kg, height: ${prof?.height_cm ?? "?"} cm
-- activity level: ${prof?.activity_level ?? "moderate"}
+- age: ${p?.age ?? "unknown"}, sex: ${p?.sex ?? "unknown"}
+- weight: ${p?.weight_kg ?? "?"} kg, height: ${p?.height_cm ?? "?"} cm
+- activity level: ${p?.activity_level ?? "moderate"}
 - primary aim: ${aim}
-- health conditions: ${JSON.stringify(prof?.health_conditions ?? [])}
+- health conditions: ${JSON.stringify(p?.health_conditions ?? [])}
 - allergies (NEVER include these): ${JSON.stringify(prof?.allergies ?? [])}
-- food preferences: ${JSON.stringify(prof?.food_preferences ?? [])}
-- lifestyle: ${prof?.lifestyle ?? "unspecified"}
-- calorie target hint: ${prof?.daily_calorie_target ?? "estimate it yourself"}
+- food preferences: ${JSON.stringify(p?.food_preferences ?? [])}
+- lifestyle: ${p?.lifestyle ?? "unspecified"}
+- calorie target hint: ${p?.daily_calorie_target ?? "estimate it yourself"}
 - preferred cuisine: ${data.cuisine || "any"}
 - budget: ${data.budget || "normal"}
 
@@ -125,14 +131,14 @@ Rules:
         prompt,
         output: Output.object({ schema: PlanSchema }),
       });
-      return { ...output, goal: aim };
+      return { ...output, goal: aim, personalized };
     } catch (error) {
       if (NoObjectGeneratedError.isInstance(error)) {
         try {
           const parsed = PlanSchema.parse(
             JSON.parse(String((error as any).text ?? "").replace(/^```json|```$/g, "").trim()),
           );
-          return { ...parsed, goal: aim };
+          return { ...parsed, goal: aim, personalized };
         } catch {
           /* fall through */
         }

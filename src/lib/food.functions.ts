@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { generateText } from "ai";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { consumeScan, safeLocalDate } from "./subscription-guard";
 import { createLovableAiGatewayProvider } from "./ai-gateway.server";
 
 /** Structured server-side log line for Food Scanner AI calls (never surfaced to users). */
@@ -109,6 +110,7 @@ export type MealAnalysisDTO = z.infer<typeof MealAnalysis> & { analysis_id: stri
 const AnalyzeSchema = z.object({
   image_data_url: z.string().startsWith("data:image/").optional().nullable(),
   text: z.string().max(2000).optional().nullable(),
+  local_date: z.string().optional(),
 });
 
 export const analyzeMeal = createServerFn({ method: "POST" })
@@ -120,6 +122,10 @@ export const analyzeMeal = createServerFn({ method: "POST" })
     if (!data.image_data_url && !data.text) throw new Error("Provide a photo or description.");
 
     const { supabase, userId } = context;
+
+    // Free plan quota — enforced BEFORE any AI request is made.
+    await consumeScan(supabase, userId, safeLocalDate(data.local_date));
+
     const { data: prof } = await supabase
       .from("profiles")
       .select(

@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { generateText, Output, NoObjectGeneratedError } from "ai";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { getTier } from "./subscription-guard";
 import { createLovableAiGatewayProvider } from "./ai-gateway.server";
 
 const MODEL = "google/gemini-3-flash-preview";
@@ -74,14 +75,18 @@ export const getWorkoutPlan = createServerFn({ method: "POST" })
       .eq("id", userId)
       .maybeSingle();
 
+    const tier = await getTier(supabase, userId);
+    const personalized = tier === "pro";
+    const p = personalized ? (prof as any) : null;
+
     const apiKey = process.env["LOVABLE_API_KEY"];
     if (!apiKey) throw new Error("AI is not configured");
     const gateway = createLovableAiGatewayProvider(apiKey);
 
     const prompt = `Design a one-week training and recovery plan.
 
-PERSON: age ${prof?.age ?? "?"}, sex ${prof?.sex ?? "?"}, ${prof?.weight_kg ?? "?"}kg, ${prof?.height_cm ?? "?"}cm, activity ${prof?.activity_level ?? "moderate"}, lifestyle ${(prof as any)?.lifestyle ?? "unspecified"}, sleeps ~${(prof as any)?.sleep_hours ?? "?"}h.
-CONDITIONS (train around these safely): ${prof?.health_conditions?.join(", ") || "none"}.
+PERSON: age ${p?.age ?? "?"}, sex ${p?.sex ?? "?"}, ${p?.weight_kg ?? "?"}kg, ${p?.height_cm ?? "?"}cm, activity ${p?.activity_level ?? "moderate"}, lifestyle ${p?.lifestyle ?? "unspecified"}, sleeps ~${p?.sleep_hours ?? "?"}h.
+CONDITIONS (train around these safely): ${p?.health_conditions?.join(", ") || "none"}.
 GOAL: ${data.goal}. TIME: ${data.days_per_week} sessions per week, ${data.minutes_per_session} minutes each. EQUIPMENT: ${data.equipment || "bodyweight plus basic dumbbells"}.
 
 Rules:
@@ -98,14 +103,14 @@ Rules:
         prompt,
         output: Output.object({ schema: PlanSchema }),
       });
-      return { ...output, goal: data.goal };
+      return { ...output, goal: data.goal, personalized };
     } catch (error) {
       if (NoObjectGeneratedError.isInstance(error)) {
         try {
           const parsed = PlanSchema.parse(
             JSON.parse(String((error as any).text ?? "").replace(/^```json|```$/g, "").trim()),
           );
-          return { ...parsed, goal: data.goal };
+          return { ...parsed, goal: data.goal, personalized };
         } catch {
           /* fall through */
         }

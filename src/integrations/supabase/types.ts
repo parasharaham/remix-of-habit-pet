@@ -637,6 +637,33 @@ export type Database = {
         }
         Relationships: []
       }
+      scan_usage: {
+        Row: {
+          created_at: string
+          id: string
+          scan_count: number
+          updated_at: string
+          usage_date: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          scan_count?: number
+          updated_at?: string
+          usage_date: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          scan_count?: number
+          updated_at?: string
+          usage_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       shop_items: {
         Row: {
           category: string
@@ -675,27 +702,42 @@ export type Database = {
       }
       subscriptions: {
         Row: {
+          billing_interval: string
+          cancel_at_period_end: boolean
           created_at: string
           current_period_end: string | null
+          current_period_start: string | null
           id: string
+          paddle_customer_id: string | null
+          paddle_subscription_id: string | null
           plan: string
           status: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          billing_interval?: string
+          cancel_at_period_end?: boolean
           created_at?: string
           current_period_end?: string | null
+          current_period_start?: string | null
           id?: string
+          paddle_customer_id?: string | null
+          paddle_subscription_id?: string | null
           plan?: string
           status?: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          billing_interval?: string
+          cancel_at_period_end?: boolean
           created_at?: string
           current_period_end?: string | null
+          current_period_start?: string | null
           id?: string
+          paddle_customer_id?: string | null
+          paddle_subscription_id?: string | null
           plan?: string
           status?: string
           updated_at?: string
