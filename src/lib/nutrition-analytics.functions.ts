@@ -238,7 +238,7 @@ export const getNutritionAnalytics = createServerFn({ method: "POST" })
     const todayPoint = series[series.length - 1] ?? empty(today);
 
     return {
-      range: data.range,
+      range,
       targets,
       days: series,
       today: todayPoint,
@@ -252,6 +252,5 @@ export const getNutritionAnalytics = createServerFn({ method: "POST" })
       today_meals: todayMeals,
       has_data: mealsLogged > 0,
       advanced,
-      range,
     };
   });
