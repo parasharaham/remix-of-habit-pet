@@ -375,10 +375,17 @@ function FoodScannerPage() {
   const runAnalysis = useMutation({
     mutationFn: async () => {
       if (!photo) throw new Error("Missing photo");
-      return fnAnalyze({ data: { image_data_url: photo, text: null } });
+      if (!sub.can("food_scan").allowed) {
+        trackSubEvent("feature_limit_reached", { feature: "food_scan" });
+        throw new Error("__scan_limit__");
+      }
+      return fnAnalyze({
+        data: { image_data_url: photo, text: null, local_date: localDateString() },
+      });
     },
     onMutate: () => setStage("analyzing"),
     onSuccess: (r) => {
+      sub.refresh();
       if (!r.is_food) {
         setRejectReason(r.reject_reason || "This image doesn't appear to contain edible food.");
         setAnalysis(null);
@@ -389,8 +396,14 @@ function FoodScannerPage() {
       setStage("result");
     },
     onError: (e) => {
-      toast.error(e instanceof Error ? e.message : "Analysis failed");
+      const msg = e instanceof Error ? e.message : "Analysis failed";
       setStage("captured");
+      if (msg === "__scan_limit__" || /free scans/i.test(msg)) {
+        sub.refresh();
+        setShowUpgrade(true);
+        return;
+      }
+      toast.error(msg);
     },
   });
 
@@ -533,7 +546,13 @@ function FoodScannerPage() {
           className="hidden"
         />
       </div>
-    </AppShell>
+          <UpgradeToProModal
+        open={showUpgrade}
+        source="food_scan_limit"
+        onClose={() => setShowUpgrade(false)}
+        detail="You're out of today's food scans — you've used all 3 free scans. Upgrade to Pro for unlimited food scanning."
+      />
+</AppShell>
   );
 }
 
