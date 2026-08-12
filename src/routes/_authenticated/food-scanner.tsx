@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSubscription } from "@/hooks/useSubscription";
+import { UpgradeToProModal } from "@/components/UpgradeToProModal";
+import { trackSubEvent } from "@/lib/sub-analytics";
+import { localDateString } from "@/lib/entitlements";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import {
@@ -213,6 +217,8 @@ function FoodScannerPage() {
   const [loadingIdx, setLoadingIdx] = useState(0);
 
   const fnAnalyze = useServerFn(analyzeMeal);
+  const sub = useSubscription();
+  const [showUpgrade, setShowUpgrade] = useState(false);
   const fnUpload = useServerFn(uploadMealPhoto);
   const fnLog = useServerFn(logMeal);
   const fnCorrect = useServerFn(logAiCorrection);
