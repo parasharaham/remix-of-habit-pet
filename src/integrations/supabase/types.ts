@@ -561,6 +561,7 @@ export type Database = {
           is_premium: boolean
           lifestyle: string | null
           mother_tongue: string | null
+          preferred_language: string
           profession: string | null
           profile_completed: boolean
           sex: string | null
@@ -592,6 +593,7 @@ export type Database = {
           is_premium?: boolean
           lifestyle?: string | null
           mother_tongue?: string | null
+          preferred_language?: string
           profession?: string | null
           profile_completed?: boolean
           sex?: string | null
@@ -623,6 +625,7 @@ export type Database = {
           is_premium?: boolean
           lifestyle?: string | null
           mother_tongue?: string | null
+          preferred_language?: string
           profession?: string | null
           profile_completed?: boolean
           sex?: string | null
