@@ -16,26 +16,10 @@ export const Route = createFileRoute("/_authenticated/onboarding")({
   component: Onboarding,
 });
 
-const LANGUAGES: { code: string; label: string }[] = [
-  { code: "en", label: "English" },
-  { code: "hi", label: "हिन्दी (Hindi)" },
-  { code: "es", label: "Español (Spanish)" },
-  { code: "fr", label: "Français (French)" },
-  { code: "ar", label: "العربية (Arabic)" },
-  { code: "zh", label: "中文 (Mandarin)" },
-  { code: "pt", label: "Português (Portuguese)" },
-  { code: "bn", label: "বাংলা (Bengali)" },
-  { code: "ur", label: "اردو (Urdu)" },
-  { code: "ta", label: "தமிழ் (Tamil)" },
-  { code: "te", label: "తెలుగు (Telugu)" },
-  { code: "mr", label: "मराठी (Marathi)" },
-  { code: "de", label: "Deutsch (German)" },
-  { code: "ja", label: "日本語 (Japanese)" },
-  { code: "ko", label: "한국어 (Korean)" },
-  { code: "id", label: "Bahasa Indonesia" },
-  { code: "tr", label: "Türkçe (Turkish)" },
-  { code: "ru", label: "Русский (Russian)" },
-];
+const LANGUAGES = SUPPORTED_LANGUAGES.map((l) => ({
+  code: l.code,
+  label: l.native === l.english ? l.native : `${l.native} (${l.english})`,
+}));
 
 const HEALTH_OPTIONS = [
   "Overweight", "Underweight", "Low energy / Weakness", "Back pain", "Anxiety / Stress",
