@@ -1,5 +1,6 @@
 import {
   useEffect as useReactEffect,
+  useRef,
   createContext,
   useCallback,
   useContext,
@@ -190,25 +191,13 @@ function ProUpgradeSheet({ source, onClose }: { source: UpgradeSource | null; on
  */
 export function UpgradeTrigger({ source, when }: { source: UpgradeSource; when: boolean }) {
   const { show } = useUpgradeSheet();
-  const firedRef = useState(() => ({ fired: false }))[0];
+  const fired = useRef(false);
 
-  useEffectOnTrue(when, () => {
-    if (firedRef.fired) return;
-    firedRef.fired = true;
+  useReactEffect(() => {
+    if (!when || fired.current) return;
+    fired.current = true;
     show(source);
-  });
+  }, [when, source, show]);
 
   return null;
-}
-
-function useEffectOnTrue(condition: boolean, fn: () => void) {
-  const ref = useState(() => ({ fn }))[0];
-  ref.fn = fn;
-  useEffectImpl(condition, ref);
-}
-
-function useEffectImpl(condition: boolean, ref: { fn: () => void }) {
-  useReactEffect(() => {
-    if (condition) ref.fn();
-  }, [condition, ref]);
 }
