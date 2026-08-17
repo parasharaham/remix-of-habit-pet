@@ -19,6 +19,7 @@ export interface ProfileDTO {
   profession?: string | null;
   grade?: string | null;
   mother_tongue?: string | null;
+  preferred_language?: string | null;
   health_conditions?: string[] | null;
   height_cm?: number | null;
   weight_kg?: number | null;
@@ -46,6 +47,7 @@ export const getProfile = createServerFn({ method: "GET" })
 const UpdateSchema = z.object({
   username: z.string().trim().min(2).max(40).optional(),
   avatar_url: z.string().url().max(500).optional().nullable(),
+  preferred_language: z.string().trim().min(2).max(8).optional(),
 });
 
 export const updateProfile = createServerFn({ method: "POST" })
