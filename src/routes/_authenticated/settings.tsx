@@ -11,6 +11,7 @@ import { Link } from "@tanstack/react-router";
 import { useSubscription } from "@/hooks/useSubscription";
 import { ProBadge } from "@/components/ProBadge";
 import { statusLabel } from "@/lib/entitlements";
+import { LanguagePicker } from "@/components/LanguagePicker";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({
@@ -151,6 +152,10 @@ function SettingsPage() {
           >
             {sub.isPro ? "Manage Subscription" : "Upgrade to Pro"}
           </Link>
+        </section>
+
+        <section className="rounded-[2rem] bg-card p-6 shadow-pet md:p-8">
+          <LanguagePicker />
         </section>
 
         <section className="rounded-[2rem] bg-card p-6 shadow-pet md:p-8">

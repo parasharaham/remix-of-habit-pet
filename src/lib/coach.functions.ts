@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { generateText, Output, NoObjectGeneratedError } from "ai";
 import { z } from "zod";
+import { languageInstruction } from "./ai-language";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { createLovableAiGatewayProvider } from "./ai-gateway.server";
 
@@ -71,7 +72,7 @@ export const getDailyGoals = createServerFn({ method: "POST" })
       const { data: prof } = await supabase
         .from("profiles")
         .select(
-          "age,sex,weight_kg,height_cm,activity_level,fitness_goal,health_conditions,allergies,food_preferences,lifestyle,daily_calorie_target",
+          "age,sex,weight_kg,height_cm,activity_level,fitness_goal,health_conditions,allergies,food_preferences,lifestyle,daily_calorie_target,preferred_language",
         )
         .eq("id", userId)
         .maybeSingle();
@@ -108,7 +109,9 @@ PROFILE: age ${prof?.age ?? "?"}, sex ${prof?.sex ?? "?"}, weight ${prof?.weight
 
 LAST 14 DAYS AVERAGES: ${Math.round(avgCals)} kcal/day, ${Math.round(avgProtein)}g protein/day, ${Math.round(avgSteps)} steps/day.
 
-Set goals that stretch the user slightly beyond their recent averages but stay achievable and medically safe. Fields: calories (kcal), protein_g, water_ml, steps, sleep_hours, veg_servings, fruit_servings, healthy_meals. rationale = one warm sentence explaining today's focus. Numbers only, no text inside numeric fields.`,
+Set goals that stretch the user slightly beyond their recent averages but stay achievable and medically safe. Fields: calories (kcal), protein_g, water_ml, steps, sleep_hours, veg_servings, fruit_servings, healthy_meals. rationale = one warm sentence explaining today's focus. Numbers only, no text inside numeric fields.
+
+${languageInstruction((prof as any)?.preferred_language)}`,
           });
           generated = output;
         } catch (e) {
@@ -264,6 +267,9 @@ export const getDailyReport = createServerFn({ method: "POST" })
     const habitRatio = habitsTotal ? habitsDone / habitsTotal : 0;
     const healthScore = clamp(nutritionScore * 0.55 + habitRatio * 100 * 0.3 + Math.min(1, water / 2500) * 100 * 0.15, 0, 100);
 
+    const { data: langProf } = await supabase.from("profiles").select("preferred_language").eq("id", userId).maybeSingle();
+    const reportLang = (langProf as any)?.preferred_language ?? "en";
+
     let ai: z.infer<typeof ReportSchema> | null = null;
     const apiKey = process.env["LOVABLE_API_KEY"];
     if (apiKey) {
@@ -281,7 +287,9 @@ PET: ${pet?.pet_name ?? "Pet"} — health ${pet?.health_points ?? 0}, happiness 
 Write:
 - summary: 3–4 sentences reviewing the day honestly but kindly. Never guilt or shame. Celebrate what went well first.
 - pet_status: one short sentence describing how the pet feels today because of these habits.
-- suggestions: 2–4 short, concrete, doable actions for tomorrow.`,
+- suggestions: 2–4 short, concrete, doable actions for tomorrow.
+
+${languageInstruction(reportLang)}`,
         });
         ai = output;
       } catch (e) {

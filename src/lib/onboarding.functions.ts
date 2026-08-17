@@ -20,6 +20,7 @@ const Schema = z.object({
   profession: z.string().trim().max(80).optional().nullable(),
   grade: z.string().trim().max(40).optional().nullable(),
   mother_tongue: z.string().trim().min(2).max(20),
+  preferred_language: z.string().trim().min(2).max(8).optional(),
 
   // Health
   health_conditions: z.array(z.string().trim().max(60)).max(20).default([]),
@@ -99,6 +100,7 @@ export const completeOnboarding = createServerFn({ method: "POST" })
       profession: data.profession ?? null,
       grade: data.grade ?? null,
       mother_tongue: data.mother_tongue,
+      preferred_language: data.preferred_language ?? data.mother_tongue,
       health_conditions: data.health_conditions ?? [],
       height_cm: data.height_cm ?? null,
       weight_kg: data.weight_kg ?? null,

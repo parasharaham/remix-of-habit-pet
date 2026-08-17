@@ -7,6 +7,7 @@ import { useReminders } from "@/lib/reminders";
 import { useSubscription } from "@/hooks/useSubscription";
 import { ProBadge } from "@/components/ProBadge";
 import { ProNudges } from "@/components/ProNudges";
+import { UpgradeSheetProvider } from "@/components/ProUpgradeSheet";
 import {
   Home,
   ListChecks,
@@ -62,7 +63,15 @@ interface Props {
   isAdmin?: boolean;
 }
 
-export function AppShell({ children, title, isAdmin }: Props) {
+export function AppShell(props: Props) {
+  return (
+    <UpgradeSheetProvider>
+      <AppShellInner {...props} />
+    </UpgradeSheetProvider>
+  );
+}
+
+function AppShellInner({ children, title, isAdmin }: Props) {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const pathname = useRouterState({ select: (s) => s.location.pathname });

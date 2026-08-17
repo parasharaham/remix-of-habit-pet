@@ -1,3 +1,4 @@
+import { UpgradeTrigger } from "@/components/ProUpgradeSheet";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -70,6 +71,7 @@ function PlannerPage() {
 
   return (
     <AppShell title="AI Meal Planner" isAdmin={profile.data?.is_admin}>
+      <UpgradeTrigger source="ai_meal_plan" when={plan?.personalized === false} />
       <PageTransition>
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
           <div className="space-y-5">
