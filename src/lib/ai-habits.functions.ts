@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { generateText, Output, NoObjectGeneratedError } from "ai";
 import { z } from "zod";
+import { languageInstruction } from "./ai-language";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { createLovableAiGatewayProvider } from "./ai-gateway.server";
 
@@ -32,7 +33,7 @@ export const generateHabitPlan = createServerFn({ method: "POST" })
     const { data: profile, error } = await supabase
       .from("profiles")
       .select(
-        "full_name, age, sex, profession, grade, mother_tongue, health_conditions, height_cm, weight_kg, activity_level, fitness_goal, target_skill, daily_calorie_target",
+        "full_name, age, sex, profession, grade, mother_tongue, preferred_language, health_conditions, height_cm, weight_kg, activity_level, fitness_goal, target_skill, daily_calorie_target",
       )
       .eq("id", userId)
       .maybeSingle();
@@ -54,7 +55,9 @@ User profile:
 - Skill they want to learn: ${profile?.target_skill ?? "general"}
 - Daily calorie target: ${profile?.daily_calorie_target ?? "unspecified"}
 
-Return valid JSON matching the schema. Categories must be one of: health, fitness, reading, productivity, study, finance, custom. Difficulty: easy, medium, hard. Include at least 2 fitness/health, 1 study (aligned to their skill), 1 productivity.`;
+Return valid JSON matching the schema. Categories must be one of: health, fitness, reading, productivity, study, finance, custom. Difficulty: easy, medium, hard. Include at least 2 fitness/health, 1 study (aligned to their skill), 1 productivity.
+
+${languageInstruction((profile as any)?.preferred_language)}`;
 
     try {
       const { output } = await generateText({

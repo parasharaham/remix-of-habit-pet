@@ -4,6 +4,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { getTier } from "./subscription-guard";
 import { createLovableAiGatewayProvider } from "./ai-gateway.server";
+import { languageInstruction } from "./ai-language";
 
 const MODEL = "google/gemini-3-flash-preview";
 
@@ -81,7 +82,7 @@ export const getMealPlan = createServerFn({ method: "POST" })
     const { data: prof } = await supabase
       .from("profiles")
       .select(
-        "full_name,age,sex,weight_kg,height_cm,activity_level,fitness_goal,health_conditions,allergies,food_preferences,lifestyle,daily_calorie_target",
+        "full_name,age,sex,weight_kg,height_cm,activity_level,fitness_goal,health_conditions,allergies,food_preferences,lifestyle,daily_calorie_target,preferred_language",
       )
       .eq("id", userId)
       .maybeSingle();
@@ -125,7 +126,9 @@ Rules:
 
 - Keep foods simple and buyable; describe portions in grams or household measures.
 - Keep every text field under 220 characters. Grocery list max 14 short items.
-- Warm, encouraging, practical tone. No medical claims.`;
+- Warm, encouraging, practical tone. No medical claims.
+
+${languageInstruction((prof as any)?.preferred_language)}`;
 
     try {
       const { output } = await generateText({

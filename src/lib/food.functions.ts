@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { generateText } from "ai";
 import { z } from "zod";
+import { languageInstruction } from "./ai-language";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { consumeScan, safeLocalDate } from "./subscription-guard";
 import { createLovableAiGatewayProvider } from "./ai-gateway.server";
@@ -129,7 +130,7 @@ export const analyzeMeal = createServerFn({ method: "POST" })
     const { data: prof } = await supabase
       .from("profiles")
       .select(
-        "full_name,age,sex,daily_calorie_target,health_conditions,fitness_goal,weight_kg,height_cm,activity_level,allergies,food_preferences,lifestyle",
+        "full_name,age,sex,daily_calorie_target,health_conditions,fitness_goal,weight_kg,height_cm,activity_level,allergies,food_preferences,lifestyle,preferred_language",
       )
       .eq("id", userId)
       .maybeSingle();
@@ -186,6 +187,7 @@ STEP 5 — FEEDBACK:
 - recommendations: 3–5 short, specific, optional, non-judgemental suggestions personalized to the user (portion, swaps, timing, hydration, cooking method, macros to add). Never generic filler, never "don't eat X".
 
 ${userCtx}
+${languageInstruction((prof as any)?.preferred_language)}
 ${correctionsHint}
 
 Respond with ONLY a raw JSON object (no markdown fences, no commentary) with exactly these keys:

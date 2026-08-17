@@ -4,6 +4,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { getTier } from "./subscription-guard";
 import { createLovableAiGatewayProvider } from "./ai-gateway.server";
+import { languageInstruction } from "./ai-language";
 
 const MODEL = "google/gemini-3-flash-preview";
 
@@ -73,7 +74,7 @@ export const getWorkoutPlan = createServerFn({ method: "POST" })
 
     const { data: prof } = await supabase
       .from("profiles")
-      .select("age,sex,weight_kg,height_cm,activity_level,health_conditions,lifestyle,sleep_hours,fitness_goal")
+      .select("age,sex,weight_kg,height_cm,activity_level,health_conditions,lifestyle,sleep_hours,fitness_goal,preferred_language")
       .eq("id", userId)
       .maybeSingle();
 
@@ -97,7 +98,9 @@ Rules:
 - Every training day: 3-5 blocks with sets/reps or duration in "detail". Total block minutes ≈ session minutes.
 - "recovery" per day: one concrete recovery action (stretch, walk, sleep, protein timing).
 - recovery_rules: 3-5 short rules (deload signs, soreness, rest between sessions, hydration).
-- Keep every text field under 200 characters. No medical claims. Warm, confident coaching tone.`;
+- Keep every text field under 200 characters. No medical claims. Warm, confident coaching tone.
+
+${languageInstruction((prof as any)?.preferred_language)}`;
 
     try {
       const { output } = await generateText({
