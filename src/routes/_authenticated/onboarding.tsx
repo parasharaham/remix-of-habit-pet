@@ -57,6 +57,7 @@ const TOTAL_STEPS = 8;
 
 function Onboarding() {
   const navigate = useNavigate();
+  const { setLanguage } = useTranslation();
   const fnComplete = useServerFn(completeOnboarding);
 
   const [step, setStep] = useState(1);
