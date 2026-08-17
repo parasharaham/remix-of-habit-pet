@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { ArrowLeft, ArrowRight, Check, Plus, X } from "lucide-react";
 import { completeOnboarding } from "@/lib/onboarding.functions";
 import { PETS, type PetType, getPet } from "@/lib/pet-catalog";
+import { LANGUAGES as SUPPORTED_LANGUAGES, useTranslation } from "@/i18n";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
   head: () => ({
@@ -108,6 +109,7 @@ function Onboarding() {
         profession: profession.trim() || null,
         grade: grade.trim() || null,
         mother_tongue: motherTongue,
+        preferred_language: motherTongue,
         health_conditions: healthConditions,
         height_cm: heightCm ? parseFloat(heightCm) : null,
         weight_kg: weightKg ? parseFloat(weightKg) : null,
@@ -237,7 +239,7 @@ function Onboarding() {
                 {LANGUAGES.map((l) => {
                   const active = motherTongue === l.code;
                   return (
-                    <button key={l.code} onClick={() => setMotherTongue(l.code)}
+                    <button key={l.code} onClick={() => { setMotherTongue(l.code); setLanguage(l.code); }}
                       className={`rounded-2xl border-2 px-4 py-3 text-left font-semibold transition ${active ? "border-primary bg-primary/5" : "border-border bg-background hover:border-primary/40"}`}>
                       {l.label}
                     </button>
