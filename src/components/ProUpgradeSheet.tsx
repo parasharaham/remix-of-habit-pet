@@ -73,6 +73,7 @@ export function UpgradeSheetProvider({ children }: { children: ReactNode }) {
       if (loading || isPro) return;
       if (!options?.force && !cooldownPassed()) return;
       markShown();
+      trackSubEvent("upgrade_modal_viewed", { source: src });
       setSource(src);
     },
     [isPro, loading],
