@@ -1,12 +1,18 @@
 import {
   ENTITLEMENTS,
   canUseFeature,
-  isProStatus,
-  tierForStatus,
   type FeatureKey,
   type PlanTier,
   type SubscriptionStatus,
 } from "./entitlements";
+import {
+  PLAN_CATALOG,
+  grantsPro,
+  isPlanCode,
+  isPlanState,
+  type PlanCode,
+  type PlanState,
+} from "./plans";
 
 /**
  * Server-side entitlement resolution. The database is the ONLY source of
@@ -18,6 +24,11 @@ export interface SubscriptionRow {
   user_id: string;
   plan: string;
   status: string;
+  plan_code: string | null;
+  plan_state: string | null;
+  one_time: boolean | null;
+  provider: string | null;
+  provider_price_id: string | null;
   billing_interval: string | null;
   paddle_customer_id: string | null;
   paddle_subscription_id: string | null;
@@ -26,29 +37,58 @@ export interface SubscriptionRow {
   cancel_at_period_end: boolean | null;
 }
 
-const VALID_STATUSES: SubscriptionStatus[] = [
-  "free",
-  "pro_active",
-  "pro_cancelled",
-  "pro_expired",
-  "payment_failed",
-  "trial",
-];
+export interface ResolvedSubscription extends SubscriptionRow {
+  plan_code: PlanCode;
+  plan_state: PlanState;
+  status: SubscriptionStatus;
+  tier: PlanTier;
+}
 
-function normalizeStatus(row: SubscriptionRow): SubscriptionStatus {
+/** Legacy status/plan rows → the 5-plan model. */
+function normalizePlan(row: SubscriptionRow): { code: PlanCode; state: PlanState } {
+  if (isPlanCode(row.plan_code) && isPlanState(row.plan_state)) {
+    return { code: row.plan_code, state: row.plan_state };
+  }
   const raw = (row.status ?? "free").toLowerCase();
-  // Legacy rows used plan=premium / status=active|inactive|canceled.
-  if (VALID_STATUSES.includes(raw as SubscriptionStatus)) return raw as SubscriptionStatus;
-  if (row.plan === "premium" && raw === "active") return "pro_active";
-  if (row.plan === "premium" && raw === "canceled") return "pro_cancelled";
-  return "free";
+  const paid = ["pro_active", "pro_cancelled", "trial", "active"].includes(raw);
+  const code: PlanCode = paid
+    ? row.billing_interval === "yearly"
+      ? "YEARLY_PRO"
+      : "MONTHLY_PRO"
+    : "FREE";
+  const state: PlanState =
+    raw === "pro_cancelled" || raw === "canceled"
+      ? "CANCELLED"
+      : raw === "pro_expired"
+        ? "EXPIRED"
+        : raw === "payment_failed"
+          ? "PAST_DUE"
+          : "ACTIVE";
+  return { code, state };
+}
+
+/** Legacy `status` column kept in sync so older code paths still read right. */
+export function legacyStatusFor(code: PlanCode, state: PlanState): SubscriptionStatus {
+  if (!PLAN_CATALOG[code].pro) return state === "EXPIRED" ? "pro_expired" : "free";
+  switch (state) {
+    case "CANCELLED":
+      return "pro_cancelled";
+    case "EXPIRED":
+      return "pro_expired";
+    case "PAST_DUE":
+      return "payment_failed";
+    case "PENDING":
+      return "free";
+    default:
+      return "pro_active";
+  }
 }
 
 /** Ensures a subscription row exists and applies period-expiry transitions. */
 export async function resolveSubscription(
   supabase: any,
   userId: string,
-): Promise<SubscriptionRow & { status: SubscriptionStatus; tier: PlanTier }> {
+): Promise<ResolvedSubscription> {
   let { data: row } = await supabase
     .from("subscriptions")
     .select("*")
@@ -58,33 +98,48 @@ export async function resolveSubscription(
   if (!row) {
     const created = await supabase
       .from("subscriptions")
-      .insert({ user_id: userId, plan: "free", status: "free" })
+      .insert({ user_id: userId, plan: "free", status: "free", plan_code: "FREE", plan_state: "ACTIVE" })
       .select("*")
       .single();
     if (created.error) throw created.error;
     row = created.data;
   }
 
-  let status = normalizeStatus(row as SubscriptionRow);
+  let { code, state } = normalizePlan(row as SubscriptionRow);
 
-  // Expire Pro once the paid period has actually elapsed. User data is never
-  // touched — only access level changes.
+  // Expire once the paid period has actually elapsed. One-time plans (the
+  // 38-day special) always fall back to Free — they never renew. User data is
+  // never touched, only access level.
   const periodEnd = row.current_period_end ? new Date(row.current_period_end).getTime() : null;
-  if (isProStatus(status) && periodEnd !== null && periodEnd < Date.now()) {
-    status = "pro_expired";
+  if (PLAN_CATALOG[code].pro && periodEnd !== null && periodEnd < Date.now()) {
+    code = "FREE";
+    state = "EXPIRED";
+  }
+
+  const status = legacyStatusFor(code, state);
+  const isPro = grantsPro(code, state);
+
+  const changed =
+    row.plan_code !== code ||
+    row.plan_state !== state ||
+    (row.status ?? "") !== status;
+
+  if (changed) {
     await supabase
       .from("subscriptions")
-      .update({ status, plan: "free" })
+      .update({ plan_code: code, plan_state: state, status, plan: isPro ? "premium" : "free" })
       .eq("user_id", userId);
-    await supabase.from("profiles").update({ is_premium: false }).eq("id", userId);
-    row = { ...row, status, plan: "free" };
+    await supabase.from("profiles").update({ is_premium: isPro }).eq("id", userId);
+    row = { ...row, plan_code: code, plan_state: state, status, plan: isPro ? "premium" : "free" };
   }
 
-  if ((row.status ?? "") !== status) {
-    await supabase.from("subscriptions").update({ status }).eq("user_id", userId);
-  }
-
-  return { ...(row as SubscriptionRow), status, tier: tierForStatus(status) };
+  return {
+    ...(row as SubscriptionRow),
+    plan_code: code,
+    plan_state: state,
+    status,
+    tier: isPro ? "pro" : "free",
+  };
 }
 
 export async function getTier(supabase: any, userId: string): Promise<PlanTier> {

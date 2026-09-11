@@ -711,9 +711,15 @@ export type Database = {
           current_period_end: string | null
           current_period_start: string | null
           id: string
+          one_time: boolean
           paddle_customer_id: string | null
           paddle_subscription_id: string | null
           plan: string
+          plan_code: string
+          plan_state: string
+          provider: string | null
+          provider_price_id: string | null
+          provider_purchase_token: string | null
           status: string
           updated_at: string
           user_id: string
@@ -725,9 +731,15 @@ export type Database = {
           current_period_end?: string | null
           current_period_start?: string | null
           id?: string
+          one_time?: boolean
           paddle_customer_id?: string | null
           paddle_subscription_id?: string | null
           plan?: string
+          plan_code?: string
+          plan_state?: string
+          provider?: string | null
+          provider_price_id?: string | null
+          provider_purchase_token?: string | null
           status?: string
           updated_at?: string
           user_id: string
@@ -739,9 +751,15 @@ export type Database = {
           current_period_end?: string | null
           current_period_start?: string | null
           id?: string
+          one_time?: boolean
           paddle_customer_id?: string | null
           paddle_subscription_id?: string | null
           plan?: string
+          plan_code?: string
+          plan_state?: string
+          provider?: string | null
+          provider_price_id?: string | null
+          provider_purchase_token?: string | null
           status?: string
           updated_at?: string
           user_id?: string
