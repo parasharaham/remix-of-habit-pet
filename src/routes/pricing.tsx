@@ -10,6 +10,16 @@ import {
 import { trackSubEvent } from "@/lib/sub-analytics";
 import { Check, Minus, Sparkles, Crown, Zap, Gift } from "lucide-react";
 import { PublicFooter, PublicNav } from "@/components/PublicFooter";
+import { useServerFn } from "@tanstack/react-start";
+import { startPlanCheckout } from "@/lib/subscription.functions";
+import {
+  PAID_PLANS,
+  SPECIAL_38_FREE_DAYS,
+  SPECIAL_38_PAID_DAYS,
+  YEARLY_SAVING_PERCENT,
+  YEARLY_SAVING_USD,
+  type PlanCode,
+} from "@/lib/plans";
 
 export const Route = createFileRoute("/pricing")({
   head: () => ({
@@ -36,11 +46,7 @@ export const Route = createFileRoute("/pricing")({
   component: PricingPage,
 });
 
-type PlanId =
-  | "weekly"
-  | "special38"
-  | "monthly"
-  | "yearly";
+type PlanId = PlanCode;
 
 type Plan = {
   id: PlanId;
@@ -56,95 +62,49 @@ type Plan = {
   cta: string;
 };
 
-const PLANS: Plan[] = [
-  {
-    id: "weekly",
-    name: "Weekly Pro",
-    price: "$2.99",
-    period: "7 days",
-    description: "Try the full HabitPet experience for one week.",
-    badge: "Easy Start",
-    badgeIcon: "zap",
-    features: [
-      "Unlimited AI food scans",
-      "Unlimited custom habits",
-      "Personalized AI meal plans",
-      "Personalized AI workout plans",
-      "AI Coach & recommendations",
-      "Advanced nutrition analytics",
-      "Full meal & workout history",
-      "Premium pet features",
-      "Smart reminders",
-    ],
-    cta: "Start Weekly Pro",
-  },
-  {
-    id: "special38",
-    name: "38-Day Special",
-    price: "$9.99",
-    period: "38 days",
-    description: "35 days + 3 FREE days to build your routine.",
-    badge: "Special Offer",
-    badgeIcon: "gift",
-    highlighted: true,
-    features: [
-      "Unlimited AI food scans",
-      "Unlimited custom habits",
-      "Personalized AI meal plans",
-      "Personalized AI workout plans",
-      "AI Coach & recommendations",
-      "Advanced nutrition analytics",
-      "Full meal & workout history",
-      "Premium pet features",
-      "Smart reminders",
-    ],
-    cta: "Get 38-Day Pro",
-  },
-  {
-    id: "monthly",
-    name: "Monthly Pro",
-    price: "$7.99",
-    period: "month",
-    description: "Full Pro access with flexible monthly billing.",
-    badge: "Most Popular",
-    badgeIcon: "crown",
-    features: [
-      "Unlimited AI food scans",
-      "Unlimited custom habits",
-      "Personalized AI meal plans",
-      "Personalized AI workout plans",
-      "AI Coach & recommendations",
-      "Advanced nutrition analytics",
-      "Full meal & workout history",
-      "Premium pet features",
-      "Smart reminders",
-    ],
-    cta: "Start Monthly Pro",
-  },
-  {
-    id: "yearly",
-    name: "Yearly Pro",
-    price: "$64.99",
-    period: "year",
-    description: "The complete HabitPet experience at the best value.",
-    badge: "Best Value",
-    badgeIcon: "crown",
-    savings: "Save $30.89/year",
-    features: [
-      "Unlimited AI food scans",
-      "Unlimited custom habits",
-      "Personalized AI meal plans",
-      "Personalized AI workout plans",
-      "AI Coach & recommendations",
-      "Advanced nutrition analytics",
-      "Full meal & workout history",
-      "Premium pet features",
-      "Smart reminders",
-      "Priority access to new features",
-    ],
-    cta: "Get Yearly Pro",
-  },
+const PRO_FEATURES = [
+  "Unlimited AI food scans",
+  "Unlimited custom habits",
+  "Personalized AI meal plans",
+  "Personalized AI workout plans",
+  "AI Coach & recommendations",
+  "Advanced nutrition analytics",
+  "Full meal & workout history",
+  "Premium pet features",
+  "Smart reminders",
 ];
+
+const BADGE_ICONS: Record<PlanId, "crown" | "zap" | "gift" | undefined> = {
+  FREE: undefined,
+  WEEKLY_PRO: "zap",
+  SPECIAL_38_DAY: "gift",
+  MONTHLY_PRO: "crown",
+  YEARLY_PRO: "crown",
+};
+
+/** Every plan card is derived from the central catalogue in src/lib/plans.ts. */
+const PLANS: Plan[] = PAID_PLANS.map((def) => ({
+  id: def.code,
+  name: def.name,
+  price: def.priceLabel,
+  period: def.periodLabel,
+  description:
+    def.code === "SPECIAL_38_DAY"
+      ? `${SPECIAL_38_PAID_DAYS} days + ${SPECIAL_38_FREE_DAYS} FREE days to build your routine.`
+      : def.description,
+  badge: def.badge,
+  badgeIcon: BADGE_ICONS[def.code],
+  highlighted: def.code === "SPECIAL_38_DAY",
+  savings:
+    def.code === "YEARLY_PRO"
+      ? `Save $${YEARLY_SAVING_USD.toFixed(2)}/year (${YEARLY_SAVING_PERCENT}%)`
+      : undefined,
+  features:
+    def.code === "YEARLY_PRO"
+      ? [...PRO_FEATURES, "Priority access to new features"]
+      : PRO_FEATURES,
+  cta: def.cta,
+}));
 
 const FREE_FEATURES = [
   "3 AI food scans per day",
@@ -217,6 +177,7 @@ const COMPARISON = [
 function PricingPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const checkout = useServerFn(startPlanCheckout);
 
   const [isAuthed, setIsAuthed] = useState<boolean | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<PlanId | null>(null);
@@ -270,27 +231,18 @@ function PricingPage() {
       });
 
       /*
-       * ============================================================
-       * GOOGLE PLAY BILLING INTEGRATION POINT
-       * ============================================================
-       *
-       * Example architecture:
-       *
-       * 1. Send plan.id to your Android billing layer.
-       * 2. Open Google Play Billing.
-       * 3. User completes purchase.
-       * 4. Obtain purchase token.
-       * 5. Send purchase token to secure backend.
-       * 6. Backend verifies purchase with Google.
-       * 7. Backend updates subscription entitlement.
-       * 8. Refresh useSubscription().
-       *
-       * DO NOT unlock Pro from this frontend function alone.
+       * The server resolves the configured provider price id for this plan
+       * (WEEKLY_PRO_PRICE_ID / SPECIAL_38_DAY_PRICE_ID / MONTHLY_PRO_PRICE_ID /
+       * YEARLY_PRO_PRICE_ID). Pro is granted ONLY by the verified webhook or
+       * server-side Google Play purchase verification — never here.
        */
+      const handoff = await checkout({ data: { plan_code: plan.id } });
 
-      toast.info(
-        `${plan.name} selected. Connect this plan to your payment provider.`,
-      );
+      if (handoff.configured) {
+        toast.info(`${plan.name} is ready for checkout.`);
+      } else {
+        toast.info(handoff.message);
+      }
 
       setShowMobileUpgrade(false);
     } catch (error) {
@@ -813,7 +765,7 @@ function PricingPage() {
                       setShowMobileUpgrade(false);
                       handlePlanClick(
                         PLANS.find(
-                          (plan) => plan.id === "special38",
+                          (plan) => plan.id === "SPECIAL_38_DAY",
                         )!,
                       );
                     }}
@@ -837,7 +789,7 @@ function PricingPage() {
                       setShowMobileUpgrade(false);
                       handlePlanClick(
                         PLANS.find(
-                          (plan) => plan.id === "yearly",
+                          (plan) => plan.id === "YEARLY_PRO",
                         )!,
                       );
                     }}

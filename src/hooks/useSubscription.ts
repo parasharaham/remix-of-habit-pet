@@ -11,6 +11,13 @@ import {
   type PlanTier,
   type SubscriptionStatus,
 } from "@/lib/entitlements";
+import {
+  PLAN_CATALOG,
+  planStateLabel,
+  type PlanCode,
+  type PlanDef,
+  type PlanState,
+} from "@/lib/plans";
 
 export const SUBSCRIPTION_QUERY_KEY = ["subscription"] as const;
 
@@ -20,6 +27,11 @@ export interface SubscriptionState {
   tier: PlanTier;
   isPro: boolean;
   status: SubscriptionStatus;
+  planCode: PlanCode;
+  planState: PlanState;
+  plan: PlanDef;
+  planLabel: string;
+  oneTime: boolean;
   entitlements: ReturnType<typeof entitlementsFor>;
   can: (feature: FeatureKey) => FeatureVerdict;
   scansUsed: number;
@@ -65,12 +77,20 @@ export function useSubscription(enabled = true): SubscriptionState {
       daysUntilRenewal = Math.ceil(ms / 86_400_000);
     }
 
+    const planCode: PlanCode = data?.plan_code ?? "FREE";
+    const planState: PlanState = data?.plan_state ?? "ACTIVE";
+
     return {
       loading: query.isLoading,
       data,
       tier,
       isPro: tier === "pro",
       status: data?.status ?? "free",
+      planCode,
+      planState,
+      plan: PLAN_CATALOG[planCode],
+      planLabel: planStateLabel(planCode, planState),
+      oneTime: Boolean(data?.one_time),
       entitlements: ent,
       can: (feature: FeatureKey) =>
         canUseFeature(tier, feature, { scans_today: scansUsed, habit_count: habitCount }),
