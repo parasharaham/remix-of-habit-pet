@@ -36,11 +36,7 @@ export const Route = createFileRoute("/pricing")({
   component: PricingPage,
 });
 
-type PlanId =
-  | "weekly"
-  | "special38"
-  | "monthly"
-  | "yearly";
+type PlanId = PlanCode;
 
 type Plan = {
   id: PlanId;
@@ -56,95 +52,49 @@ type Plan = {
   cta: string;
 };
 
-const PLANS: Plan[] = [
-  {
-    id: "weekly",
-    name: "Weekly Pro",
-    price: "$2.99",
-    period: "7 days",
-    description: "Try the full HabitPet experience for one week.",
-    badge: "Easy Start",
-    badgeIcon: "zap",
-    features: [
-      "Unlimited AI food scans",
-      "Unlimited custom habits",
-      "Personalized AI meal plans",
-      "Personalized AI workout plans",
-      "AI Coach & recommendations",
-      "Advanced nutrition analytics",
-      "Full meal & workout history",
-      "Premium pet features",
-      "Smart reminders",
-    ],
-    cta: "Start Weekly Pro",
-  },
-  {
-    id: "special38",
-    name: "38-Day Special",
-    price: "$9.99",
-    period: "38 days",
-    description: "35 days + 3 FREE days to build your routine.",
-    badge: "Special Offer",
-    badgeIcon: "gift",
-    highlighted: true,
-    features: [
-      "Unlimited AI food scans",
-      "Unlimited custom habits",
-      "Personalized AI meal plans",
-      "Personalized AI workout plans",
-      "AI Coach & recommendations",
-      "Advanced nutrition analytics",
-      "Full meal & workout history",
-      "Premium pet features",
-      "Smart reminders",
-    ],
-    cta: "Get 38-Day Pro",
-  },
-  {
-    id: "monthly",
-    name: "Monthly Pro",
-    price: "$7.99",
-    period: "month",
-    description: "Full Pro access with flexible monthly billing.",
-    badge: "Most Popular",
-    badgeIcon: "crown",
-    features: [
-      "Unlimited AI food scans",
-      "Unlimited custom habits",
-      "Personalized AI meal plans",
-      "Personalized AI workout plans",
-      "AI Coach & recommendations",
-      "Advanced nutrition analytics",
-      "Full meal & workout history",
-      "Premium pet features",
-      "Smart reminders",
-    ],
-    cta: "Start Monthly Pro",
-  },
-  {
-    id: "yearly",
-    name: "Yearly Pro",
-    price: "$64.99",
-    period: "year",
-    description: "The complete HabitPet experience at the best value.",
-    badge: "Best Value",
-    badgeIcon: "crown",
-    savings: "Save $30.89/year",
-    features: [
-      "Unlimited AI food scans",
-      "Unlimited custom habits",
-      "Personalized AI meal plans",
-      "Personalized AI workout plans",
-      "AI Coach & recommendations",
-      "Advanced nutrition analytics",
-      "Full meal & workout history",
-      "Premium pet features",
-      "Smart reminders",
-      "Priority access to new features",
-    ],
-    cta: "Get Yearly Pro",
-  },
+const PRO_FEATURES = [
+  "Unlimited AI food scans",
+  "Unlimited custom habits",
+  "Personalized AI meal plans",
+  "Personalized AI workout plans",
+  "AI Coach & recommendations",
+  "Advanced nutrition analytics",
+  "Full meal & workout history",
+  "Premium pet features",
+  "Smart reminders",
 ];
+
+const BADGE_ICONS: Record<PlanId, "crown" | "zap" | "gift" | undefined> = {
+  FREE: undefined,
+  WEEKLY_PRO: "zap",
+  SPECIAL_38_DAY: "gift",
+  MONTHLY_PRO: "crown",
+  YEARLY_PRO: "crown",
+};
+
+/** Every plan card is derived from the central catalogue in src/lib/plans.ts. */
+const PLANS: Plan[] = PAID_PLANS.map((def) => ({
+  id: def.code,
+  name: def.name,
+  price: def.priceLabel,
+  period: def.periodLabel,
+  description:
+    def.code === "SPECIAL_38_DAY"
+      ? `${SPECIAL_38_PAID_DAYS} days + ${SPECIAL_38_FREE_DAYS} FREE days to build your routine.`
+      : def.description,
+  badge: def.badge,
+  badgeIcon: BADGE_ICONS[def.code],
+  highlighted: def.code === "SPECIAL_38_DAY",
+  savings:
+    def.code === "YEARLY_PRO"
+      ? `Save $${YEARLY_SAVING_USD.toFixed(2)}/year (${YEARLY_SAVING_PERCENT}%)`
+      : undefined,
+  features:
+    def.code === "YEARLY_PRO"
+      ? [...PRO_FEATURES, "Priority access to new features"]
+      : PRO_FEATURES,
+  cta: def.cta,
+}));
 
 const FREE_FEATURES = [
   "3 AI food scans per day",
