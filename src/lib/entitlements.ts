@@ -18,18 +18,22 @@ export type SubscriptionStatus =
 
 export type BillingInterval = "monthly" | "yearly";
 
+/** Derived from the central 5-plan catalogue — see src/lib/plans.ts. */
 export const PRICING = {
-  monthly: { amount: 5, label: "$5", suffix: "/month" },
-  yearly: { amount: 49, label: "$49", suffix: "/year" },
+  weekly: { amount: 2.99, label: "$2.99", suffix: "/7 days" },
+  special38: { amount: 9.99, label: "$9.99", suffix: "/38 days" },
+  monthly: { amount: 7.99, label: "$7.99", suffix: "/month" },
+  yearly: { amount: 64.99, label: "$64.99", suffix: "/year" },
 } as const;
 
-/** $49 / 12 → effective monthly price on the yearly plan. */
-export const YEARLY_PER_MONTH = Math.round((PRICING.yearly.amount / 12) * 100) / 100; // 4.08
-/** Real saving vs. paying $5 × 12 = $60. */
-export const YEARLY_SAVING_USD = PRICING.monthly.amount * 12 - PRICING.yearly.amount; // 11
+/** $64.99 / 12 → effective monthly price on the yearly plan. */
+export const YEARLY_PER_MONTH = Math.round((PRICING.yearly.amount / 12) * 100) / 100;
+/** Real saving vs. paying $7.99 × 12. */
+export const YEARLY_SAVING_USD =
+  Math.round((PRICING.monthly.amount * 12 - PRICING.yearly.amount) * 100) / 100; // 30.89
 export const YEARLY_SAVING_PERCENT = Math.round(
   (YEARLY_SAVING_USD / (PRICING.monthly.amount * 12)) * 100,
-); // 18
+);
 
 export const UNLIMITED = Number.POSITIVE_INFINITY;
 
