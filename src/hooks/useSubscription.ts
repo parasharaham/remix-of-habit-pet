@@ -11,6 +11,13 @@ import {
   type PlanTier,
   type SubscriptionStatus,
 } from "@/lib/entitlements";
+import {
+  PLAN_CATALOG,
+  planStateLabel,
+  type PlanCode,
+  type PlanDef,
+  type PlanState,
+} from "@/lib/plans";
 
 export const SUBSCRIPTION_QUERY_KEY = ["subscription"] as const;
 
@@ -20,6 +27,11 @@ export interface SubscriptionState {
   tier: PlanTier;
   isPro: boolean;
   status: SubscriptionStatus;
+  planCode: PlanCode;
+  planState: PlanState;
+  plan: PlanDef;
+  planLabel: string;
+  oneTime: boolean;
   entitlements: ReturnType<typeof entitlementsFor>;
   can: (feature: FeatureKey) => FeatureVerdict;
   scansUsed: number;
