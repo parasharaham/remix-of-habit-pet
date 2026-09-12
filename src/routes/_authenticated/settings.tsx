@@ -113,16 +113,18 @@ function SettingsPage() {
           <dl className="space-y-2 text-sm">
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Current plan</dt>
-              <dd className="font-semibold">{sub.isPro ? "HabitPet Pro" : "Free"}</dd>
+              <dd className="font-semibold">{sub.plan.name}</dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Status</dt>
-              <dd className="font-semibold">{statusLabel(sub.status)}</dd>
+              <dd className="font-semibold">{sub.planLabel}</dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Billing</dt>
               <dd className="font-semibold">
-                {sub.isPro ? (sub.data?.billing_interval === "yearly" ? "$49 / year" : "$5 / month") : "$0"}
+                {sub.plan.price === 0
+                  ? "$0"
+                  : `${sub.plan.priceLabel} / ${sub.plan.periodLabel}${sub.oneTime ? " (one-time)" : ""}`}
               </dd>
             </div>
             {sub.data?.current_period_end && (

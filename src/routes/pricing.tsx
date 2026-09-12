@@ -177,6 +177,7 @@ const COMPARISON = [
 function PricingPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const checkout = useServerFn(startPlanCheckout);
 
   const [isAuthed, setIsAuthed] = useState<boolean | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<PlanId | null>(null);
