@@ -77,12 +77,20 @@ export function useSubscription(enabled = true): SubscriptionState {
       daysUntilRenewal = Math.ceil(ms / 86_400_000);
     }
 
+    const planCode: PlanCode = data?.plan_code ?? "FREE";
+    const planState: PlanState = data?.plan_state ?? "ACTIVE";
+
     return {
       loading: query.isLoading,
       data,
       tier,
       isPro: tier === "pro",
       status: data?.status ?? "free",
+      planCode,
+      planState,
+      plan: PLAN_CATALOG[planCode],
+      planLabel: planStateLabel(planCode, planState),
+      oneTime: Boolean(data?.one_time),
       entitlements: ent,
       can: (feature: FeatureKey) =>
         canUseFeature(tier, feature, { scans_today: scansUsed, habit_count: habitCount }),
