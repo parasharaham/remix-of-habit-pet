@@ -230,27 +230,18 @@ function PricingPage() {
       });
 
       /*
-       * ============================================================
-       * GOOGLE PLAY BILLING INTEGRATION POINT
-       * ============================================================
-       *
-       * Example architecture:
-       *
-       * 1. Send plan.id to your Android billing layer.
-       * 2. Open Google Play Billing.
-       * 3. User completes purchase.
-       * 4. Obtain purchase token.
-       * 5. Send purchase token to secure backend.
-       * 6. Backend verifies purchase with Google.
-       * 7. Backend updates subscription entitlement.
-       * 8. Refresh useSubscription().
-       *
-       * DO NOT unlock Pro from this frontend function alone.
+       * The server resolves the configured provider price id for this plan
+       * (WEEKLY_PRO_PRICE_ID / SPECIAL_38_DAY_PRICE_ID / MONTHLY_PRO_PRICE_ID /
+       * YEARLY_PRO_PRICE_ID). Pro is granted ONLY by the verified webhook or
+       * server-side Google Play purchase verification — never here.
        */
+      const handoff = await checkout({ data: { plan_code: plan.id } });
 
-      toast.info(
-        `${plan.name} selected. Connect this plan to your payment provider.`,
-      );
+      if (handoff.configured) {
+        toast.info(`${plan.name} is ready for checkout.`);
+      } else {
+        toast.info(handoff.message);
+      }
 
       setShowMobileUpgrade(false);
     } catch (error) {
