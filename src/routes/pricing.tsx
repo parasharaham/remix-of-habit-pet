@@ -765,7 +765,7 @@ function PricingPage() {
                       setShowMobileUpgrade(false);
                       handlePlanClick(
                         PLANS.find(
-                          (plan) => plan.id === "special38",
+                          (plan) => plan.id === "SPECIAL_38_DAY",
                         )!,
                       );
                     }}
@@ -789,7 +789,7 @@ function PricingPage() {
                       setShowMobileUpgrade(false);
                       handlePlanClick(
                         PLANS.find(
-                          (plan) => plan.id === "yearly",
+                          (plan) => plan.id === "YEARLY_PRO",
                         )!,
                       );
                     }}
