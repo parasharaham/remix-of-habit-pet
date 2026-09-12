@@ -10,6 +10,16 @@ import {
 import { trackSubEvent } from "@/lib/sub-analytics";
 import { Check, Minus, Sparkles, Crown, Zap, Gift } from "lucide-react";
 import { PublicFooter, PublicNav } from "@/components/PublicFooter";
+import { useServerFn } from "@tanstack/react-start";
+import { startPlanCheckout } from "@/lib/subscription.functions";
+import {
+  PAID_PLANS,
+  SPECIAL_38_FREE_DAYS,
+  SPECIAL_38_PAID_DAYS,
+  YEARLY_SAVING_PERCENT,
+  YEARLY_SAVING_USD,
+  type PlanCode,
+} from "@/lib/plans";
 
 export const Route = createFileRoute("/pricing")({
   head: () => ({
