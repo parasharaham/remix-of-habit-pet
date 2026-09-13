@@ -4,12 +4,17 @@
  */
 export type SubEvent =
   | "pricing_viewed"
+  | "plan_selected"
   | "upgrade_modal_viewed"
   | "upgrade_clicked"
   | "checkout_started"
+  | "checkout_unavailable"
   | "subscription_activated"
+  | "subscription_renewed"
   | "subscription_canceled"
   | "subscription_expired"
+  | "payment_failed"
+  | "purchases_restored"
   | "feature_limit_reached";
 
 const KEY = "habitpet-sub-events";

@@ -42,7 +42,7 @@ function ProSuccessPage() {
 
         {sub.data?.current_period_end && (
           <p className="mt-5 text-xs text-muted-foreground">
-            {sub.data.billing_interval === "yearly" ? "Yearly" : "Monthly"} plan · renews{" "}
+            {sub.plan.name} · {sub.oneTime ? "access ends" : "renews"}{" "}
             {new Date(sub.data.current_period_end).toLocaleDateString()}
           </p>
         )}
