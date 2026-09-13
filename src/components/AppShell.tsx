@@ -1,8 +1,10 @@
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { motion, AnimatePresence } from "motion/react";
 import { supabase } from "@/integrations/supabase/client";
+import { getOnboardingStatus } from "@/lib/onboarding.functions";
 import { useReminders } from "@/lib/reminders";
 import { useSubscription } from "@/hooks/useSubscription";
 import { ProBadge } from "@/components/ProBadge";
@@ -78,6 +80,23 @@ function AppShellInner({ children, title, isAdmin }: Props) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { isPro } = useSubscription();
   useReminders();
+
+  // Every signed-in user must finish the onboarding questionnaire before
+  // using any app screen — new signups can never bypass it.
+  const fetchOnboarding = useServerFn(getOnboardingStatus);
+  const onboarding = useQuery({
+    queryKey: ["onboarding-status"],
+    queryFn: () => fetchOnboarding(),
+    staleTime: 5 * 60_000,
+    retry: 1,
+  });
+
+  useEffect(() => {
+    if (!onboarding.data) return;
+    if (!onboarding.data.onboarded && pathname !== "/onboarding") {
+      navigate({ to: "/onboarding", replace: true });
+    }
+  }, [onboarding.data, pathname, navigate]);
 
   async function signOut() {
     await qc.cancelQueries();
