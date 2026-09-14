@@ -10,6 +10,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { ProBadge } from "@/components/ProBadge";
 import { ProNudges } from "@/components/ProNudges";
 import { UpgradeSheetProvider } from "@/components/ProUpgradeSheet";
+import { BrandMark } from "@/components/BrandMark";
 import {
   Home,
   ListChecks,
@@ -112,9 +113,7 @@ function AppShellInner({ children, title, isAdmin }: Props) {
       {/* Sidebar — desktop */}
       <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col gap-1 border-r border-border bg-surface/60 p-4 backdrop-blur-xl md:flex">
         <Link to="/app" className="mb-6 flex items-center gap-2 px-2 text-2xl font-extrabold">
-          <span className="grid h-9 w-9 place-items-center rounded-2xl bg-[var(--gradient-primary)] text-lg shadow-glow">
-            🐣
-          </span>
+          <BrandMark className="h-9 w-9 shadow-glow" />
           <span className="text-gradient">HabitPet</span>
           {isPro && <ProBadge className="ml-1" />}
         </Link>
@@ -154,7 +153,7 @@ function AppShellInner({ children, title, isAdmin }: Props) {
       {/* Mobile top bar */}
       <div className="sticky top-0 z-30 flex items-center justify-between border-b border-border bg-surface/70 px-4 py-3 backdrop-blur-xl md:hidden">
         <Link to="/app" className="flex items-center gap-2 text-lg font-extrabold">
-          <span className="text-2xl">🐣</span> <span className="text-gradient">HabitPet</span>
+          <BrandMark className="h-8 w-8" /> <span className="text-gradient">HabitPet</span>
         </Link>
         <button
           onClick={() => setMobileOpen(true)}

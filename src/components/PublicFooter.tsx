@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { BrandMark } from "@/components/BrandMark";
 
 export function PublicFooter() {
   const year = new Date().getFullYear();
@@ -8,7 +9,7 @@ export function PublicFooter() {
         <div className="grid gap-8 md:grid-cols-2">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-2xl">🐣</span>
+              <BrandMark className="h-8 w-8" />
               <span className="text-lg font-bold">HabitPet</span>
             </div>
             <p className="mt-2 max-w-sm text-sm text-muted-foreground">
@@ -38,7 +39,7 @@ export function PublicNav() {
     <header className="border-b border-foreground/5 bg-card/40 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         <Link to="/" className="flex items-center gap-2 font-bold">
-          <span className="text-2xl">🐣</span>
+          <BrandMark className="h-8 w-8" />
           <span>HabitPet</span>
         </Link>
         <nav className="flex items-center gap-1 text-sm font-medium md:gap-2">

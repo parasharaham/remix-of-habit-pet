@@ -11,6 +11,7 @@
   - [ ] Restore Purchases + Google Play server verification (blocked: no provider configured)
 
 ## Requested
+- [x] Replace visible template branding with HabitPet name and pet logo
 - [ ] Firebase audit + migration plan (read-only, no code changes) — explain Supabase/Lovable Cloud usage,
       auth/db/storage/server functions/profiles, Lovable AI preservation, feature data dependencies,
       files requiring changes, and a safe staged migration plan. Config provided for project habitpet-co.

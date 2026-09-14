@@ -6,10 +6,12 @@ import { PublicFooter, PublicNav } from "@/components/PublicFooter";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Tama — Your Habit Tamagotchi" },
+      { title: "HabitPet — Build Habits With Your Pet" },
       { name: "description", content: "Build daily habits. Hatch and grow a virtual pet that thrives on your streaks." },
-      { property: "og:title", content: "Tama — Your Habit Tamagotchi" },
+      { property: "og:title", content: "HabitPet — Build Habits With Your Pet" },
       { property: "og:description", content: "Build daily habits. Hatch and grow a virtual pet that thrives on your streaks." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Landing,
@@ -42,12 +44,12 @@ function Landing() {
           <h1 className="text-5xl font-bold leading-[1.05] tracking-tight md:text-6xl">
             Build habits. <br />
             <span className="bg-[var(--gradient-candy)] bg-clip-text text-transparent">
-              Hatch a Tama.
+              Grow your HabitPet.
             </span>
           </h1>
           <p className="max-w-md text-lg text-muted-foreground">
             Every habit you keep feeds your virtual pet XP and happiness. Skip
-            your habits and Tama gets sad — and a little hangry. Grow it from
+            your habits and your HabitPet gets sad — and a little hangry. Grow it from
             egg to legend.
           </p>
           <div className="flex flex-wrap gap-3">
@@ -55,7 +57,7 @@ function Landing() {
               to="/app"
               className="inline-flex h-12 items-center justify-center rounded-full bg-primary px-7 text-base font-semibold text-primary-foreground shadow-card transition hover:-translate-y-0.5 hover:shadow-pet"
             >
-              Start your Tama →
+              Start with HabitPet →
             </Link>
             <Link
               to="/auth"
