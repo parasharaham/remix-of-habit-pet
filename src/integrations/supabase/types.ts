@@ -490,6 +490,33 @@ export type Database = {
         }
         Relationships: []
       }
+      motivations: {
+        Row: {
+          author: string | null
+          id: string
+          image_index: number
+          quote: string
+          shown_at: string
+          user_id: string
+        }
+        Insert: {
+          author?: string | null
+          id?: string
+          image_index?: number
+          quote: string
+          shown_at?: string
+          user_id: string
+        }
+        Update: {
+          author?: string | null
+          id?: string
+          image_index?: number
+          quote?: string
+          shown_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       pets: {
         Row: {
           created_at: string
@@ -559,8 +586,10 @@ export type Database = {
           id: string
           is_admin: boolean
           is_premium: boolean
+          life_objective: string | null
           lifestyle: string | null
           mother_tongue: string | null
+          passion: string | null
           preferred_language: string
           profession: string | null
           profile_completed: boolean
@@ -591,8 +620,10 @@ export type Database = {
           id: string
           is_admin?: boolean
           is_premium?: boolean
+          life_objective?: string | null
           lifestyle?: string | null
           mother_tongue?: string | null
+          passion?: string | null
           preferred_language?: string
           profession?: string | null
           profile_completed?: boolean
@@ -623,8 +654,10 @@ export type Database = {
           id?: string
           is_admin?: boolean
           is_premium?: boolean
+          life_objective?: string | null
           lifestyle?: string | null
           mother_tongue?: string | null
+          passion?: string | null
           preferred_language?: string
           profession?: string | null
           profile_completed?: boolean
@@ -637,6 +670,69 @@ export type Database = {
           updated_at?: string
           username?: string | null
           weight_kg?: number | null
+        }
+        Relationships: []
+      }
+      routine_messages: {
+        Row: {
+          content: string
+          created_at: string
+          emotion: string | null
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          emotion?: string | null
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          emotion?: string | null
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      routines: {
+        Row: {
+          blocks: Json
+          created_at: string
+          encouragement: string | null
+          id: string
+          inputs: Json
+          roadmap: Json
+          summary: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          blocks?: Json
+          created_at?: string
+          encouragement?: string | null
+          id?: string
+          inputs?: Json
+          roadmap?: Json
+          summary?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          blocks?: Json
+          created_at?: string
+          encouragement?: string | null
+          id?: string
+          inputs?: Json
+          roadmap?: Json
+          summary?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
