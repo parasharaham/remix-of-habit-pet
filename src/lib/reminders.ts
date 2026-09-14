@@ -55,7 +55,7 @@ export function minutesToHhmm(v: number) {
 function notify(title: string, body: string, sound: boolean) {
   try {
     if (typeof Notification !== "undefined" && Notification.permission === "granted") {
-      new Notification(title, { body, icon: "/favicon.ico", tag: title });
+      new Notification(title, { body, icon: "/favicon.png", tag: title });
     }
     if (sound) {
       const AudioCtx = (window as any).AudioContext || (window as any).webkitAudioContext;

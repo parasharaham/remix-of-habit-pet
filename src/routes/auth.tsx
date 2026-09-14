@@ -4,13 +4,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
 import petEgg from "@/assets/pet-egg.png";
+import { BrandMark } from "@/components/BrandMark";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Sign in — Tama" },
-      { name: "description", content: "Sign in or create your Tama account to start growing your habit pet." },
+      { title: "Sign in — HabitPet" },
+      { name: "description", content: "Sign in or create your HabitPet account to start growing your habit pet." },
+      { property: "og:title", content: "Sign in — HabitPet" },
+      { property: "og:description", content: "Sign in or create your HabitPet account to start growing your habit pet." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   beforeLoad: async () => {
@@ -71,13 +76,17 @@ function AuthPage() {
       <div className="grid w-full max-w-4xl overflow-hidden rounded-[2.5rem] bg-card shadow-pet md:grid-cols-2">
         <div className="hidden flex-col items-center justify-center gap-4 bg-[var(--gradient-sky)] p-10 md:flex">
           <img src={petEgg} alt="" width={768} height={768} className="pet-float h-auto w-56" />
-          <h2 className="text-center text-2xl font-bold">Your Tama is waiting</h2>
+          <h2 className="text-center text-2xl font-bold">Your HabitPet is waiting</h2>
           <p className="text-center text-sm text-muted-foreground">
             One account, infinite streaks.
           </p>
         </div>
 
         <div className="space-y-5 p-8 md:p-10">
+          <div className="flex items-center gap-2 font-extrabold">
+            <BrandMark className="h-9 w-9" />
+            <span>HabitPet</span>
+          </div>
           <div className="space-y-1">
             <h1 className="text-3xl font-bold">{mode === "signin" ? "Welcome back" : "Create your account"}</h1>
             <p className="text-sm text-muted-foreground">
