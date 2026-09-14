@@ -20,7 +20,7 @@ export const requirePremium = createMiddleware({ type: "function" })
 
     if (!isPremium) {
       throw new Response(
-        JSON.stringify({ error: "premium_required", message: "This feature is part of Tama Premium." }),
+        JSON.stringify({ error: "premium_required", message: "This feature is part of HabitPet Pro." }),
         { status: 403, headers: { "content-type": "application/json" } },
       );
     }
