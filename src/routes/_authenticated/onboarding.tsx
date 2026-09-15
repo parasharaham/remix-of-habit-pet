@@ -88,6 +88,10 @@ function Onboarding() {
   const [targetSkill, setTargetSkill] = useState("");
   const [customSkill, setCustomSkill] = useState("");
 
+  // Life objective & passion
+  const [lifeObjective, setLifeObjective] = useState("");
+  const [passion, setPassion] = useState("");
+
   // Habits
   const [habits, setHabits] = useState<string[]>([]);
   const [customHabit, setCustomHabit] = useState("");
@@ -117,6 +121,8 @@ function Onboarding() {
         activity_level: activityLevel || null,
         fitness_goal: fitnessGoal,
         target_skill: targetSkill.trim(),
+        life_objective: lifeObjective.trim() || null,
+        passion: passion.trim() || null,
       } });
       toast.success(`${petName.trim()} is hatching!`);
       navigate({ to: "/app", replace: true });
@@ -132,7 +138,7 @@ function Onboarding() {
     (step === 3 && fullName.trim().length > 0 && age.length > 0 && parseInt(age, 10) >= 5) ||
     (step === 4 && motherTongue.length > 0) ||
     (step === 5 && fitnessGoal.length > 0) ||
-    (step === 6 && targetSkill.trim().length > 0) ||
+    (step === 6 && targetSkill.trim().length > 0 && lifeObjective.trim().length > 0) ||
     (step === 7 && habits.length > 0);
 
   return (
@@ -355,6 +361,27 @@ function Onboarding() {
                   <div className="mt-1 text-lg font-bold">{targetSkill}</div>
                 </div>
               )}
+
+              <div className="space-y-4 border-t border-border pt-5">
+                <div className="space-y-1">
+                  <h2 className="text-xl font-bold">And the bigger picture</h2>
+                  <p className="text-sm text-muted-foreground">
+                    Your coach uses this to build your routine and your roadmap.
+                  </p>
+                </div>
+                <label className="block space-y-1.5">
+                  <span className="text-sm font-semibold">What do you want to change in your life?</span>
+                  <textarea rows={3} value={lifeObjective} onChange={(e) => setLifeObjective(e.target.value)}
+                    placeholder="e.g. build an online business so I can leave my 9–5"
+                    className="w-full resize-y rounded-2xl border-2 border-input bg-background px-4 py-2.5 outline-none focus:border-ring" />
+                </label>
+                <label className="block space-y-1.5">
+                  <span className="text-sm font-semibold">What's your passion?</span>
+                  <input value={passion} onChange={(e) => setPassion(e.target.value)}
+                    placeholder="The thing you lose track of time doing"
+                    className="w-full rounded-2xl border-2 border-input bg-background px-4 py-2.5 outline-none focus:border-ring" />
+                </label>
+              </div>
             </div>
           )}
 

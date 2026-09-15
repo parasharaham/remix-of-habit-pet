@@ -12,6 +12,9 @@
 
 ## Requested
 - [x] Replace visible template branding with HabitPet name and pet logo
+- [x] Signup questionnaire (pet, name, body details, objective + passion)
+- [x] Routine page with emotion-aware AI coach, 8h sleep / 3L water / exercise, roadmap
+- [x] One-per-user motivation popup on app open (never repeats a line)
 - [ ] Firebase audit + migration plan (read-only, no code changes) — explain Supabase/Lovable Cloud usage,
       auth/db/storage/server functions/profiles, Lovable AI preservation, feature data dependencies,
       files requiring changes, and a safe staged migration plan. Config provided for project habitpet-co.
