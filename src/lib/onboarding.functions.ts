@@ -31,6 +31,10 @@ const Schema = z.object({
 
   // Skill
   target_skill: z.string().trim().min(1).max(80),
+
+  // Life direction
+  life_objective: z.string().trim().max(600).optional().nullable(),
+  passion: z.string().trim().max(300).optional().nullable(),
 });
 
 // Mifflin-St Jeor + activity multiplier
@@ -107,6 +111,8 @@ export const completeOnboarding = createServerFn({ method: "POST" })
       activity_level: data.activity_level ?? null,
       fitness_goal: data.fitness_goal,
       target_skill: data.target_skill,
+      life_objective: data.life_objective ?? null,
+      passion: data.passion ?? null,
       daily_calorie_target: calorieTarget,
       profile_completed: true,
     }).eq("id", userId);
