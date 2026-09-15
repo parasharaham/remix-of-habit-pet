@@ -11,6 +11,7 @@ import { ProBadge } from "@/components/ProBadge";
 import { ProNudges } from "@/components/ProNudges";
 import { UpgradeSheetProvider } from "@/components/ProUpgradeSheet";
 import { BrandMark } from "@/components/BrandMark";
+import { MotivationPopup } from "@/components/MotivationPopup";
 import {
   Home,
   ListChecks,
@@ -29,6 +30,7 @@ import {
   Apple,
   Camera,
   CalendarHeart,
+  CalendarClock,
   Dumbbell,
 
   Image as ImageIcon,
@@ -46,6 +48,7 @@ const NAV: NavItem[] = [
   { to: "/habits", label: "Habits", icon: ListChecks },
   { to: "/food-scanner", label: "Scan Food", icon: Camera },
   { to: "/coach", label: "AI Coach", icon: Sparkles },
+  { to: "/routine", label: "My Routine", icon: CalendarClock },
   { to: "/meal-planner", label: "Meal Planner", icon: CalendarHeart },
   { to: "/workout-planner", label: "Workout Plan", icon: Dumbbell },
 
@@ -237,6 +240,7 @@ function AppShellInner({ children, title, isAdmin }: Props) {
       </main>
 
       <MobileCameraNav pathname={pathname} />
+      {onboarding.data?.onboarded && <MotivationPopup />}
     </div>
   );
 }

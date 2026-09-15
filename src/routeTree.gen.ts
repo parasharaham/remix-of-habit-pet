@@ -20,6 +20,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedWorkoutPlannerRouteImport } from './routes/_authenticated/workout-planner'
 import { Route as AuthenticatedShopRouteImport } from './routes/_authenticated/shop'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedRoutineRouteImport } from './routes/_authenticated/routine'
 import { Route as AuthenticatedProSuccessRouteImport } from './routes/_authenticated/pro-success'
 import { Route as AuthenticatedPetRouteImport } from './routes/_authenticated/pet'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
@@ -90,6 +91,11 @@ const AuthenticatedShopRoute = AuthenticatedShopRouteImport.update({
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedRoutineRoute = AuthenticatedRoutineRouteImport.update({
+  id: '/routine',
+  path: '/routine',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedProSuccessRoute = AuthenticatedProSuccessRouteImport.update({
@@ -200,6 +206,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/pet': typeof AuthenticatedPetRoute
   '/pro-success': typeof AuthenticatedProSuccessRoute
+  '/routine': typeof AuthenticatedRoutineRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/shop': typeof AuthenticatedShopRoute
   '/workout-planner': typeof AuthenticatedWorkoutPlannerRoute
@@ -228,6 +235,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/pet': typeof AuthenticatedPetRoute
   '/pro-success': typeof AuthenticatedProSuccessRoute
+  '/routine': typeof AuthenticatedRoutineRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/shop': typeof AuthenticatedShopRoute
   '/workout-planner': typeof AuthenticatedWorkoutPlannerRoute
@@ -258,6 +266,7 @@ export interface FileRoutesById {
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/pet': typeof AuthenticatedPetRoute
   '/_authenticated/pro-success': typeof AuthenticatedProSuccessRoute
+  '/_authenticated/routine': typeof AuthenticatedRoutineRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/shop': typeof AuthenticatedShopRoute
   '/_authenticated/workout-planner': typeof AuthenticatedWorkoutPlannerRoute
@@ -288,6 +297,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/pet'
     | '/pro-success'
+    | '/routine'
     | '/settings'
     | '/shop'
     | '/workout-planner'
@@ -316,6 +326,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/pet'
     | '/pro-success'
+    | '/routine'
     | '/settings'
     | '/shop'
     | '/workout-planner'
@@ -345,6 +356,7 @@ export interface FileRouteTypes {
     | '/_authenticated/onboarding'
     | '/_authenticated/pet'
     | '/_authenticated/pro-success'
+    | '/_authenticated/routine'
     | '/_authenticated/settings'
     | '/_authenticated/shop'
     | '/_authenticated/workout-planner'
@@ -440,6 +452,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/routine': {
+      id: '/_authenticated/routine'
+      path: '/routine'
+      fullPath: '/routine'
+      preLoaderRoute: typeof AuthenticatedRoutineRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/pro-success': {
@@ -573,6 +592,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedPetRoute: typeof AuthenticatedPetRoute
   AuthenticatedProSuccessRoute: typeof AuthenticatedProSuccessRoute
+  AuthenticatedRoutineRoute: typeof AuthenticatedRoutineRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedShopRoute: typeof AuthenticatedShopRoute
   AuthenticatedWorkoutPlannerRoute: typeof AuthenticatedWorkoutPlannerRoute
@@ -594,6 +614,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedPetRoute: AuthenticatedPetRoute,
   AuthenticatedProSuccessRoute: AuthenticatedProSuccessRoute,
+  AuthenticatedRoutineRoute: AuthenticatedRoutineRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedShopRoute: AuthenticatedShopRoute,
   AuthenticatedWorkoutPlannerRoute: AuthenticatedWorkoutPlannerRoute,
