@@ -1,0 +1,22 @@
+rules_version = '2';
+
+// HabitPet Cloud Storage rules.
+// Deploy from the Firebase console (Storage -> Rules) or the CLI.
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Meal photos live under meal-photos/{uid}/... and stay private to the owner.
+    match /meal-photos/{uid}/{allPaths=**} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if request.auth != null
+                   && request.auth.uid == uid
+                   && request.resource.size < 10 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+      allow delete: if request.auth != null && request.auth.uid == uid;
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

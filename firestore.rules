@@ -1,0 +1,150 @@
+rules_version = '2';
+
+// HabitPet Firestore security rules.
+// Deploy from the Firebase console (Firestore Database -> Rules) or the CLI.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function ownsDoc() {
+      return signedIn() && resource.data.user_id == request.auth.uid;
+    }
+
+    function creatingOwnDoc() {
+      return signedIn() && request.resource.data.user_id == request.auth.uid;
+    }
+
+    // ---- One document per user, keyed by uid ----
+    match /profiles/{uid} {
+      allow read: if isOwner(uid);
+      allow create, update: if isOwner(uid);
+      allow delete: if false;
+
+      // Per-user subcollections keyed under the profile document.
+      match /{sub=**} {
+        allow read, write: if isOwner(uid);
+      }
+    }
+
+    match /pets/{uid} {
+      allow read, write: if isOwner(uid);
+    }
+
+    match /routines/{uid} {
+      allow read, write: if isOwner(uid);
+    }
+
+    match /subscriptions/{uid} {
+      // Plan state is written by the server (service account bypasses rules).
+      allow read: if isOwner(uid);
+      allow write: if false;
+    }
+
+    match /scan_usage/{docId} {
+      allow read, write: if ownsDoc() || creatingOwnDoc();
+    }
+
+    // ---- Collections with many rows per user ----
+    match /habits/{docId} {
+      allow read, update, delete: if ownsDoc();
+      allow create: if creatingOwnDoc();
+    }
+
+    match /habit_completions/{docId} {
+      allow read, update, delete: if ownsDoc();
+      allow create: if creatingOwnDoc();
+    }
+
+    match /meal_logs/{docId} {
+      allow read, update, delete: if ownsDoc();
+      allow create: if creatingOwnDoc();
+    }
+
+    match /activity_logs/{docId} {
+      allow read, update, delete: if ownsDoc();
+      allow create: if creatingOwnDoc();
+    }
+
+    match /daily_goals/{docId} {
+      allow read, update, delete: if ownsDoc();
+      allow create: if creatingOwnDoc();
+    }
+
+    match /daily_reports/{docId} {
+      allow read, update, delete: if ownsDoc();
+      allow create: if creatingOwnDoc();
+    }
+
+    match /routine_messages/{docId} {
+      allow read, delete: if ownsDoc();
+      allow create: if creatingOwnDoc();
+      allow update: if false;
+    }
+
+    match /motivations/{docId} {
+      allow read, delete: if ownsDoc();
+      allow create: if creatingOwnDoc();
+      allow update: if false;
+    }
+
+    match /coin_transactions/{docId} {
+      allow read: if ownsDoc();
+      allow create: if creatingOwnDoc();
+      allow update, delete: if false;
+    }
+
+    match /user_inventory/{docId} {
+      allow read, update, delete: if ownsDoc();
+      allow create: if creatingOwnDoc();
+    }
+
+    match /user_achievements/{docId} {
+      allow read: if ownsDoc();
+      allow create: if creatingOwnDoc();
+      allow update, delete: if false;
+    }
+
+    match /ai_food_corrections/{docId} {
+      allow read: if ownsDoc();
+      allow create: if creatingOwnDoc();
+      allow update, delete: if false;
+    }
+
+    // ---- Shared, read-only catalogues (seeded by the server) ----
+    match /shop_items/{docId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    match /achievements/{docId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    // ---- Community feed: everyone signed in can read, authors can post ----
+    match /activity_feed/{docId} {
+      allow read: if signedIn();
+      allow create: if creatingOwnDoc();
+      allow update, delete: if false;
+    }
+
+    // ---- Contact form: write-only ----
+    match /contact_submissions/{docId} {
+      allow read: if false;
+      allow create: if request.resource.data.keys().hasAll(['name', 'email', 'subject', 'message']);
+      allow update, delete: if false;
+    }
+
+    // Everything else is denied.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
