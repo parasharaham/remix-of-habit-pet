@@ -1,74 +1,48 @@
-This is a very large scope (roughly a second full app on top of HabitPet). To ship something that actually works instead of a half-wired demo, I'll break it into phases and confirm a few decisions before building.
+# Move HabitPet onto Firebase (habitpet-co)
 
-## Decisions I need from you
+Firebase is now connected: the library is installed, your web settings are wired in, sign-in, Firestore, Storage and Analytics are ready to use. Nothing has moved yet — the app still runs on its current backend, so everything keeps working while we switch.
 
-1. **3D pets** — True 3D (react-three-fiber + GLB models) adds ~500KB per pet, requires 3D artist assets, and takes 1-2 days per pet just to rig. **My recommendation:** keep the current high-quality illustrated pets and add subtle idle/bounce animations + a "3D-style" shaded look via CSS transforms. Real 3D can be a later upgrade. OK?
-2. **Fitness tracking** — Browsers can't background-track walking distance. Real step tracking needs either (a) a native mobile app, (b) Google Fit / Apple Health OAuth connector, or (c) manual "I walked X km today" entry. **My recommendation:** manual entry + optional Google Fit connector later. OK?
-3. **Calorie AI from photos** — I'll use Lovable AI (Gemini vision) to analyze meal photos and estimate calories/protein/carbs/fat. Estimates only, not medical grade — I'll show a disclaimer.
-4. **Skill lessons & motivational quotes in mother tongue** — generated on-demand by Lovable AI (Gemini) in the user's chosen language. First lesson generates on skill selection, then daily.
-5. **Medical info (diseases/weaknesses)** — I'll store it but add a clear disclaimer: HabitPet is not medical advice. OK?
+## Why this needs an order
 
-## Build phases (one PR each, in order)
+Today every screen talks to the current backend through 19 server files, and every one of them checks "who is signed in?" using the current sign-in system. If sign-in moves first, all 19 break at once. If the data moves first, there is nothing to protect it with. So the switch happens in one coordinated cut-over, prepared in small safe steps beforehand.
 
-### Phase 1 — Expanded onboarding + profile
-- New onboarding steps after pet selection:
-  1. Name, age, profession, class/grade (optional)
-  2. Mother tongue (dropdown: English, Hindi, Spanish, French, Arabic, Mandarin, Portuguese, Bengali, Urdu, Tamil, +more)
-  3. Health conditions (multi-select: overweight, underweight, weakness/low-energy, diabetes-risk, back-pain, anxiety, none, +custom)
-  4. Fitness goal (lose weight / gain muscle / stay fit / more energy)
-  5. Skill to learn (video editing, coding, design, writing, public speaking, music, +custom)
-- Migration: add columns to `profiles` (full_name, age, profession, grade, mother_tongue, health_conditions[], fitness_goal, target_skill, height_cm, weight_kg)
+## The steps
 
-### Phase 2 — AI-generated daily habits
-- On onboarding complete, call Lovable AI (Gemini 3 Flash) with profile → returns 5–10 tailored habits (JSON, validated with Zod). Insert into `habits`.
-- "Regenerate my plan" button on /habits page.
+**Step 1 — Prepare (no visible change)**
+- Write the Firestore data shapes for all 21 collections (profiles, pets, habits, habit completions, meal logs, activity logs, daily goals, daily reports, scan usage, subscriptions, shop items, inventory, coins, achievements, community feed, routines, routine messages, motivations, contact messages, AI corrections).
+- Write Firestore security rules so each person can only read and write their own records, plus the read-only shared lists (shop items, achievements, community feed).
+- Write Storage rules for meal photos.
 
-### Phase 3 — Food tracking + calorie AI (Cal AI-style)
-- New route `/food` with:
-  - "Log meal" — pick meal (breakfast/lunch/dinner/snack), either type text OR upload/take photo
-  - Camera button uses `<input type="file" accept="image/*" capture="environment">`
-  - Photo goes to a `createServerFn` that calls Gemini vision → structured JSON: `{items:[{name, grams, calories, protein_g, carbs_g, fat_g}], total_calories, ...}`
-  - Save to new `meal_logs` table
-- New route `/nutrition` (daily dashboard):
-  - Today's calories in/out, protein/carbs/fat rings, weekly trend chart
-  - Compare vs. target (calculated from age/weight/goal — Mifflin-St Jeor formula)
-- New tables: `meal_logs`, `activity_logs` (for manual walk/run/workout entry with kcal burned)
+**Step 2 — Sign-in**
+- Add a Firebase sign-in provider: email + password and Google (Google must be switched on in your Firebase console).
+- Keep the loading splash and the protected-page behaviour exactly as they are now.
 
-### Phase 4 — Diet plan
-- Daily AI-generated meal suggestions based on profile + goal + mother tongue for meal names.
-- Stored in `diet_suggestions` table, cached per day.
+**Step 3 — Data, feature by feature**
+Each feature is converted and checked before the next one starts:
+1. Profile and pet
+2. Habits and completions
+3. Meals, scan counts and photos
+4. Nutrition, activity, daily goals and reports
+5. Routine, motivation and coach history
+6. Shop, coins, inventory, achievements, community
+7. Subscriptions and the payment webhook
 
-### Phase 5 — Fitness tracking
-- Manual entry: "I walked X km" / "I did X minutes of Y"
-- Progress ring toward daily goal (e.g., 5 km walk)
-- Streaks for meeting the goal.
+**Step 4 — Cut over**
+Switch the app to Firebase, keep the old backend read-only for a short verification window, then retire it.
 
-### Phase 6 — Pet health score linkage
-- Nightly (on next-day open): compute a **wellness score 0–100** from:
-  - Habit completion rate (40%)
-  - Calorie balance vs. target (25%)
-  - Fitness goal met (25%)
-  - Sleep/hydration habits done (10%)
-- Score maps to pet health/happiness deltas. Score ≥70 → pet happy & healthy; <40 → pet sick animation + gentle nudge.
+## What stays exactly the same
 
-### Phase 7 — Skill lessons + mother-tongue motivation
-- New route `/learn`:
-  - Today's lesson for chosen skill: what/why/how/first steps (AI-generated, cached per day, in English + user's mother tongue side-by-side).
-  - "Next lesson" progresses a curriculum stored in `skill_lessons`.
-- Dashboard widget: 3 motivational lines in mother tongue tailored to age + skill, refreshed daily.
+- All AI features (food scanning, coach, routine builder, motivation, meal and workout planners) keep running on the Lovable AI service. Untouched.
+- The look, the yellow-and-black identity, the pet, the pages and the subscription plans.
 
-### Phase 8 — Pet polish (the "3D feel")
-- Add drop-shadow, subtle float/bounce/blink animations, tilt-on-hover, particle sparkles on level-up. Keeps current art but feels alive.
-- (Real 3D pets deferred until you provide/approve GLB models.)
+## What I need from you
 
-## Technical notes (for reference)
+1. **A Firebase service-account key** (Firebase console → Project settings → Service accounts → Generate new private key). Needed so the app's server side and the payment webhook can write to Firestore. I'll ask for it securely when we reach Step 2 — don't paste it in chat.
+2. **Google sign-in switched on** in Firebase console → Authentication → Sign-in method.
+3. Confirmation that you have **no existing users or data in Firebase** to preserve (you said none earlier), so we start clean and copy your current data across at Step 4.
 
-- All AI calls via **Lovable AI Gateway** (`google/gemini-3-flash-preview` for text, same model for vision — it's multimodal). Server-only, keys stay in `process.env.LOVABLE_API_KEY`.
-- Food photos: uploaded as base64 data URLs directly to the server fn (no storage bucket needed for MVP; can add Supabase Storage later for history).
-- All new tables get RLS scoped to `auth.uid()` + GRANTs to `authenticated` + `service_role`.
-- Structured AI output uses AI SDK `Output.object` with small Zod schemas (no `.min/.max` in schema — enforced in prompt + clamped after).
-- Nothing here changes existing pages/design — only adds routes and expands onboarding.
+## Technical notes
 
-## What I'll do next
-
-Reply with **"go"** and I'll start with **Phase 1 (expanded onboarding + profile schema)**. Or tell me which decisions above to change and I'll adjust before starting.
+- Browser: `src/integrations/firebase/client.ts` lazily initialises app/auth/firestore/storage; the web API key is served from the stored secret via `src/lib/firebase-config.functions.ts` (the key is publishable, but not hard-coded).
+- Server side runs on Cloudflare Workers, where the standard `firebase-admin` package does not work. Server writes will use the Firestore REST API with a service-account JWT signed via Web Crypto, or move to client-side Firestore calls guarded by security rules — chosen per feature.
+- Reads/writes move from server functions to client-side Firestore where rules can enforce ownership; AI server functions stay server-side and keep `LOVABLE_API_KEY`.
