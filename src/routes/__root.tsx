@@ -125,6 +125,12 @@ function RootComponent() {
   const router = useRouter();
 
   useEffect(() => {
+    import("@/integrations/firebase/client")
+      .then(({ getFirebase }) => getFirebase())
+      .catch(() => undefined);
+  }, []);
+
+  useEffect(() => {
     let mounted = true;
     import("@/integrations/supabase/client").then(({ supabase }) => {
       if (!mounted) return;
