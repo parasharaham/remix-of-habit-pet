@@ -15,6 +15,11 @@
 - [x] Signup questionnaire (pet, name, body details, objective + passion)
 - [x] Routine page with emotion-aware AI coach, 8h sleep / 3L water / exercise, roadmap
 - [x] One-per-user motivation popup on app open (never repeats a line)
-- [ ] Firebase audit + migration plan (read-only, no code changes) — explain Supabase/Lovable Cloud usage,
-      auth/db/storage/server functions/profiles, Lovable AI preservation, feature data dependencies,
-      files requiring changes, and a safe staged migration plan. Config provided for project habitpet-co.
+- [x] Firebase audit + migration plan
+- [ ] Firebase migration (habitpet-co)
+  - [x] SDK + web config wired, lazy client
+  - [x] Step 1: Firestore data model, Firestore + Storage security rules
+  - [x] Step 2 prep: Firebase sign-in provider (email, Google, reset) — not yet switched on
+  - [ ] Service-account key (blocked: user must provide)
+  - [ ] Step 3: move data feature by feature
+  - [ ] Step 4: cut over, verify, retire old backend
