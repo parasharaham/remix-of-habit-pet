@@ -20,6 +20,6 @@
   - [x] SDK + web config wired, lazy client
   - [x] Step 1: Firestore data model, Firestore + Storage security rules
   - [x] Step 2 prep: Firebase sign-in provider (email, Google, reset) — not yet switched on
-  - [ ] Service-account key (blocked: user must provide)
+  - [x] Service-account key saved + Worker-safe server access (token, Firestore REST, custom tokens)
   - [ ] Step 3: move data feature by feature
   - [ ] Step 4: cut over, verify, retire old backend
