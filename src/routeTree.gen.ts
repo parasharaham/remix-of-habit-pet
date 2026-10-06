@@ -34,7 +34,6 @@ import { Route as AuthenticatedPetRouteImport } from './routes/_authenticated/pe
 import { Route as AuthenticatedProSuccessRouteImport } from './routes/_authenticated/pro-success'
 import { Route as AuthenticatedRoutineRouteImport } from './routes/_authenticated/routine'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
-import { Route as AuthenticatedShopRouteImport } from './routes/_authenticated/shop'
 import { Route as AuthenticatedWorkoutPlannerRouteImport } from './routes/_authenticated/workout-planner'
 import { Route as ApiPublicWebhooksPaddleRouteImport } from './routes/api/public/webhooks/paddle'
 
@@ -166,11 +165,6 @@ const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedShopRoute = AuthenticatedShopRouteImport.update({
-  id: '/shop',
-  path: '/shop',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedWorkoutPlannerRoute =
   AuthenticatedWorkoutPlannerRouteImport.update({
     id: '/workout-planner',
@@ -208,7 +202,6 @@ export interface FileRoutesByFullPath {
   '/pro-success': typeof AuthenticatedProSuccessRoute
   '/routine': typeof AuthenticatedRoutineRoute
   '/settings': typeof AuthenticatedSettingsRoute
-  '/shop': typeof AuthenticatedShopRoute
   '/workout-planner': typeof AuthenticatedWorkoutPlannerRoute
   '/api/public/webhooks/paddle': typeof ApiPublicWebhooksPaddleRoute
 }
@@ -237,7 +230,6 @@ export interface FileRoutesByTo {
   '/pro-success': typeof AuthenticatedProSuccessRoute
   '/routine': typeof AuthenticatedRoutineRoute
   '/settings': typeof AuthenticatedSettingsRoute
-  '/shop': typeof AuthenticatedShopRoute
   '/workout-planner': typeof AuthenticatedWorkoutPlannerRoute
   '/api/public/webhooks/paddle': typeof ApiPublicWebhooksPaddleRoute
 }
@@ -268,7 +260,6 @@ export interface FileRoutesById {
   '/_authenticated/pro-success': typeof AuthenticatedProSuccessRoute
   '/_authenticated/routine': typeof AuthenticatedRoutineRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
-  '/_authenticated/shop': typeof AuthenticatedShopRoute
   '/_authenticated/workout-planner': typeof AuthenticatedWorkoutPlannerRoute
   '/api/public/webhooks/paddle': typeof ApiPublicWebhooksPaddleRoute
 }
@@ -299,7 +290,6 @@ export interface FileRouteTypes {
     | '/pro-success'
     | '/routine'
     | '/settings'
-    | '/shop'
     | '/workout-planner'
     | '/api/public/webhooks/paddle'
   fileRoutesByTo: FileRoutesByTo
@@ -328,7 +318,6 @@ export interface FileRouteTypes {
     | '/pro-success'
     | '/routine'
     | '/settings'
-    | '/shop'
     | '/workout-planner'
     | '/api/public/webhooks/paddle'
   id:
@@ -358,7 +347,6 @@ export interface FileRouteTypes {
     | '/_authenticated/pro-success'
     | '/_authenticated/routine'
     | '/_authenticated/settings'
-    | '/_authenticated/shop'
     | '/_authenticated/workout-planner'
     | '/api/public/webhooks/paddle'
   fileRoutesById: FileRoutesById
@@ -552,13 +540,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/shop': {
-      id: '/_authenticated/shop'
-      path: '/shop'
-      fullPath: '/shop'
-      preLoaderRoute: typeof AuthenticatedShopRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/workout-planner': {
       id: '/_authenticated/workout-planner'
       path: '/workout-planner'
@@ -594,7 +575,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProSuccessRoute: typeof AuthenticatedProSuccessRoute
   AuthenticatedRoutineRoute: typeof AuthenticatedRoutineRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
-  AuthenticatedShopRoute: typeof AuthenticatedShopRoute
   AuthenticatedWorkoutPlannerRoute: typeof AuthenticatedWorkoutPlannerRoute
 }
 
@@ -616,7 +596,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedProSuccessRoute: AuthenticatedProSuccessRoute,
   AuthenticatedRoutineRoute: AuthenticatedRoutineRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
-  AuthenticatedShopRoute: AuthenticatedShopRoute,
   AuthenticatedWorkoutPlannerRoute: AuthenticatedWorkoutPlannerRoute,
 }
 
