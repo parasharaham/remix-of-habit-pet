@@ -113,8 +113,6 @@ export const PLAN_CATALOG: Record<PlanCode, PlanDef> = {
 };
 
 export const PAID_PLANS: PlanDef[] = [
-  PLAN_CATALOG.WEEKLY_PRO,
-  PLAN_CATALOG.SPECIAL_38_DAY,
   PLAN_CATALOG.MONTHLY_PRO,
   PLAN_CATALOG.YEARLY_PRO,
 ];

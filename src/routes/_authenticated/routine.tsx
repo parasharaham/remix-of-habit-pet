@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { motion } from "motion/react";
 import {
   Sparkles, Send, Moon, Droplets, Dumbbell, Utensils, Briefcase,
-  Heart, Target, Coffee, BookOpen, Loader2, Wand2, Map,
+  Heart, Target, Coffee, BookOpen, Loader2, Wand2, Map, Mic, MicOff,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import {
@@ -289,6 +289,7 @@ function RoutineChat() {
       </div>
 
       <form onSubmit={submit} className="mt-3 flex items-end gap-2">
+        <VoiceButton onText={(t) => setInput((prev) => (prev ? prev + " " : "") + t)} />
         <textarea
           ref={inputRef}
           rows={2}
@@ -310,5 +311,57 @@ function RoutineChat() {
         </button>
       </form>
     </aside>
+  );
+}
+
+/** Speak instead of typing — uses the browser's built-in speech recognition. */
+function VoiceButton({ onText }: { onText: (text: string) => void }) {
+  const [listening, setListening] = useState(false);
+  const recRef = useRef<any>(null);
+
+  useEffect(() => () => recRef.current?.stop?.(), []);
+
+  function toggle() {
+    if (listening) {
+      recRef.current?.stop();
+      return;
+    }
+    const w = window as any;
+    const SR = w.SpeechRecognition || w.webkitSpeechRecognition;
+    if (!SR) {
+      toast.error("Voice input isn't supported in this browser. Try Chrome.");
+      return;
+    }
+    const rec = new SR();
+    rec.lang = "en-US";
+    rec.interimResults = false;
+    rec.continuous = false;
+    rec.onresult = (e: any) => {
+      const text = Array.from(e.results as ArrayLike<any>)
+        .map((r: any) => r[0]?.transcript ?? "")
+        .join(" ")
+        .trim();
+      if (text) onText(text);
+    };
+    rec.onerror = (e: any) => {
+      if (e?.error === "not-allowed") toast.error("Please allow microphone access to talk.");
+    };
+    rec.onend = () => setListening(false);
+    recRef.current = rec;
+    setListening(true);
+    rec.start();
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={toggle}
+      aria-label={listening ? "Stop listening" : "Talk to your coach"}
+      className={`grid h-11 w-11 shrink-0 place-items-center rounded-full border-2 transition ${
+        listening ? "animate-pulse border-primary bg-primary text-primary-foreground" : "border-input bg-background hover:border-primary"
+      }`}
+    >
+      {listening ? <MicOff size={18} /> : <Mic size={18} />}
+    </button>
   );
 }

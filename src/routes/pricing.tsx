@@ -94,7 +94,7 @@ const PLANS: Plan[] = PAID_PLANS.map((def) => ({
       : def.description,
   badge: def.badge,
   badgeIcon: BADGE_ICONS[def.code],
-  highlighted: def.code === "SPECIAL_38_DAY",
+  highlighted: def.code === "YEARLY_PRO",
   savings:
     def.code === "YEARLY_PRO"
       ? `Save $${YEARLY_SAVING_USD.toFixed(2)}/year (${YEARLY_SAVING_PERCENT}%)`
@@ -331,7 +331,7 @@ function PricingPage() {
               FREE + PAID PLANS
           ====================================================== */}
 
-          <div className="grid gap-6 lg:grid-cols-5">
+          <div className="grid gap-6 md:grid-cols-3">
 
             {/* FREE */}
 
@@ -529,22 +529,6 @@ function PricingPage() {
           </div>
 
           {/* =====================================================
-              SPECIAL OFFER MESSAGE
-          ====================================================== */}
-
-          <div className="mx-auto mt-8 max-w-3xl rounded-3xl border-2 border-primary/20 bg-primary/10 p-5 text-center">
-            <div className="flex items-center justify-center gap-2 font-black text-primary">
-              <Gift size={18} />
-              38-Day Special
-            </div>
-
-            <p className="mt-2 text-sm text-muted-foreground">
-              Get 35 paid days plus 3 additional free days for{" "}
-              <strong className="text-foreground">$9.99</strong>.
-            </p>
-          </div>
-
-          {/* =====================================================
               COMPARISON
           ====================================================== */}
 
@@ -632,11 +616,6 @@ function PricingPage() {
               <Faq
                 q="What does Pro unlock?"
                 a="Pro unlocks unlimited food scanning, unlimited habits, personalized AI meal and workout plans, AI coaching, advanced nutrition analytics, premium pet features and other premium functionality."
-              />
-
-              <Faq
-                q="What is the 38-Day Special?"
-                a="The 38-Day Special costs $9.99 and provides 35 paid days plus 3 additional free days, for 38 total days of access."
               />
 
               <Faq
@@ -765,22 +744,22 @@ function PricingPage() {
                       setShowMobileUpgrade(false);
                       handlePlanClick(
                         PLANS.find(
-                          (plan) => plan.id === "SPECIAL_38_DAY",
+                          (plan) => plan.id === "MONTHLY_PRO",
                         )!,
                       );
                     }}
                     className="rounded-2xl border-2 border-primary/20 bg-primary/10 p-4 text-left"
                   >
                     <span className="text-xs font-bold text-primary">
-                      SPECIAL
+                      MONTHLY
                     </span>
 
                     <span className="mt-1 block text-xl font-black">
-                      $9.99
+                      $7.99
                     </span>
 
                     <span className="text-xs text-muted-foreground">
-                      38 days
+                      per month
                     </span>
                   </button>
 

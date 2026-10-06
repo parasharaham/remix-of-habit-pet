@@ -203,7 +203,7 @@ function PetPage() {
             <h3 className="mb-4 text-lg font-bold">Inventory</h3>
             {owned.length === 0 ? (
               <p className="rounded-2xl bg-muted/50 p-6 text-center text-sm text-muted-foreground">
-                Nothing equipped yet. Visit the shop to grab skins, accessories, and backgrounds.
+                Nothing equipped yet. Keep building habits to unlock more for your pet.
               </p>
             ) : (
               <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">

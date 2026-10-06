@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { motion, AnimatePresence } from "motion/react";
 import { X, Heart } from "lucide-react";
 import { getDailyMotivation } from "@/lib/motivation.functions";
+import { useUpgradeSheet } from "@/components/ProUpgradeSheet";
 import sunrise from "@/assets/motivation/sunrise.jpg";
 import desk from "@/assets/motivation/desk.jpg";
 import steps from "@/assets/motivation/steps.jpg";
@@ -20,6 +21,7 @@ export function MotivationPopup() {
   const fetchMotivation = useServerFn(getDailyMotivation);
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const { show } = useUpgradeSheet();
 
   useEffect(() => setMounted(true), []);
 
@@ -70,7 +72,11 @@ export function MotivationPopup() {
               <p className="text-xl font-extrabold leading-snug">{data.quote}</p>
               <p className="text-sm font-semibold text-muted-foreground">— {data.author ?? "HabitPet"}</p>
               <button
-                onClick={() => setOpen(false)}
+                onClick={() => {
+                  setOpen(false);
+                  // Free users see the Pro upgrade right after their motivation.
+                  setTimeout(() => show("session", { force: true }), 350);
+                }}
                 className="flex w-full items-center justify-center gap-2 rounded-full bg-[var(--gradient-primary)] py-3 font-bold text-primary-foreground shadow-glow transition active:scale-[0.98]"
               >
                 <Heart size={18} /> I'm ready

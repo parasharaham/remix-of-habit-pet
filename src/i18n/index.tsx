@@ -75,33 +75,12 @@ export function LanguageProvider({
   children: ReactNode;
   initialLanguage?: string;
 }) {
-  const [language, setLanguageState] = useState<string>(
-    isSupportedLanguage(initialLanguage) ? initialLanguage! : DEFAULT_LANGUAGE,
-  );
+  // HabitPet is English-only: the language is fixed regardless of stored/browser prefs.
+  void initialLanguage;
+  const [language] = useState<string>("en");
   const [ready, setReady] = useState(false);
-
-  // Resolve the stored preference on the client only, so SSR markup stays stable.
-  useEffect(() => {
-    let next = DEFAULT_LANGUAGE;
-    try {
-      const stored = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
-      next = isSupportedLanguage(stored) ? stored! : detectBrowserLanguage();
-    } catch {
-      next = detectBrowserLanguage();
-    }
-    setLanguageState(next);
-    setReady(true);
-  }, []);
-
-  const setLanguage = useCallback((code: string) => {
-    if (!isSupportedLanguage(code)) return;
-    setLanguageState(code);
-    try {
-      window.localStorage.setItem(LANGUAGE_STORAGE_KEY, code);
-    } catch {
-      /* storage unavailable — in-memory language still applies */
-    }
-  }, []);
+  useEffect(() => setReady(true), []);
+  const setLanguage = useCallback((_code: string) => {}, []);
 
   useEffect(() => {
     const def = getLanguage(language);

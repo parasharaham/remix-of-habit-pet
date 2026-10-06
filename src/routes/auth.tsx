@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 import { toast } from "sonner";
 import petEgg from "@/assets/pet-egg.png";
 import { BrandMark } from "@/components/BrandMark";
@@ -57,20 +56,6 @@ function AuthPage() {
     }
   }
 
-  async function withGoogle() {
-    setBusy(true);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
-    if (result.error) {
-      toast.error(result.error.message ?? "Google sign-in failed");
-      setBusy(false);
-      return;
-    }
-    if (result.redirected) return;
-    navigate({ to: "/app" });
-  }
-
   return (
     <main className="flex min-h-screen items-center justify-center px-6 py-16">
       <div className="grid w-full max-w-4xl overflow-hidden rounded-[2.5rem] bg-card shadow-pet md:grid-cols-2">
@@ -94,19 +79,6 @@ function AuthPage() {
             </p>
           </div>
 
-          <button
-            onClick={withGoogle}
-            disabled={busy}
-            type="button"
-            className="flex w-full items-center justify-center gap-3 rounded-full border-2 border-foreground/10 bg-card px-4 py-3 font-semibold transition hover:bg-muted disabled:opacity-50"
-          >
-            <span className="text-lg">G</span> Continue with Google
-          </button>
-
-          <div className="relative text-center text-xs text-muted-foreground">
-            <span className="bg-card px-3">or with email</span>
-            <div className="absolute left-0 right-0 top-1/2 -z-10 h-px bg-border" />
-          </div>
 
           <form onSubmit={submit} className="space-y-3">
             <input

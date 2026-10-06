@@ -32,8 +32,6 @@ export interface SubscriptionDTO {
 const ContextSchema = z.object({ local_date: z.string().optional() });
 
 const PlanCodeSchema = z.enum([
-  "WEEKLY_PRO",
-  "SPECIAL_38_DAY",
   "MONTHLY_PRO",
   "YEARLY_PRO",
 ]);
