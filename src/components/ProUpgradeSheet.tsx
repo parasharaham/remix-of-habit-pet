@@ -9,6 +9,11 @@ import {
   type ReactNode,
 } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { activatePlanSandbox } from "@/lib/subscription.functions";
+import { SUBSCRIPTION_QUERY_KEY } from "@/hooks/useSubscription";
 import { AnimatePresence, motion } from "motion/react";
 import { Check, Sparkles, X } from "lucide-react";
 import { PRICING, YEARLY_PER_MONTH, type UpgradeSource } from "@/lib/entitlements";
@@ -103,10 +108,24 @@ function ProUpgradeSheet({ source, onClose }: { source: UpgradeSource | null; on
     ? t("upgrade.expiredTitle")
     : t(HEADLINE_KEY[source ?? "dashboard"] ?? "upgrade.header");
 
-  function goPricing() {
+  const qc = useQueryClient();
+  const activate = useServerFn(activatePlanSandbox);
+  const [busy, setBusy] = useState<null | "MONTHLY_PRO" | "YEARLY_PRO">(null);
+  void navigate;
+
+  async function upgrade(plan: "MONTHLY_PRO" | "YEARLY_PRO") {
     if (source) trackSubEvent("upgrade_clicked", { source });
-    onClose();
-    navigate({ to: "/pricing" });
+    setBusy(plan);
+    try {
+      await activate({ data: { plan_code: plan } });
+      await qc.invalidateQueries({ queryKey: SUBSCRIPTION_QUERY_KEY });
+      toast.success("Welcome to HabitPet Pro! All premium features are unlocked.");
+      onClose();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Upgrade failed");
+    } finally {
+      setBusy(null);
+    }
   }
 
   return (
@@ -162,15 +181,19 @@ function ProUpgradeSheet({ source, onClose }: { source: UpgradeSource | null; on
 
             <div className="mt-4 space-y-2">
               <button
-                onClick={goPricing}
-                className="w-full rounded-full bg-primary px-6 py-3.5 font-bold text-primary-foreground shadow-card transition hover:-translate-y-0.5"
+                onClick={() => upgrade("MONTHLY_PRO")}
+                disabled={busy !== null}
+                className="w-full rounded-full bg-primary px-6 py-3.5 font-bold text-primary-foreground shadow-card transition hover:-translate-y-0.5 disabled:opacity-60"
               >
-                {expired ? t("upgrade.renewCta") : t("upgrade.cta")} · {PRICING.monthly.label}
-                {PRICING.monthly.suffix}
+                {busy === "MONTHLY_PRO" ? "Upgrading…" : `${expired ? t("upgrade.renewCta") : t("upgrade.cta")} · ${PRICING.monthly.label}${PRICING.monthly.suffix}`}
               </button>
-              <p className="text-center text-xs text-muted-foreground">
-                {t("upgrade.yearly")} — ${YEARLY_PER_MONTH.toFixed(2)}/mo
-              </p>
+              <button
+                onClick={() => upgrade("YEARLY_PRO")}
+                disabled={busy !== null}
+                className="w-full rounded-full border-2 border-foreground px-6 py-3 font-bold transition hover:bg-muted disabled:opacity-60"
+              >
+                {busy === "YEARLY_PRO" ? "Upgrading…" : `Yearly Pro · $64.99/yr (${"$"}${YEARLY_PER_MONTH.toFixed(2)}/mo)`}
+              </button>
               <button
                 onClick={onClose}
                 className="w-full rounded-full px-6 py-2.5 font-semibold text-muted-foreground transition hover:bg-muted"
