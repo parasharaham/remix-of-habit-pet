@@ -529,22 +529,6 @@ function PricingPage() {
           </div>
 
           {/* =====================================================
-              SPECIAL OFFER MESSAGE
-          ====================================================== */}
-
-          <div className="mx-auto mt-8 max-w-3xl rounded-3xl border-2 border-primary/20 bg-primary/10 p-5 text-center">
-            <div className="flex items-center justify-center gap-2 font-black text-primary">
-              <Gift size={18} />
-              38-Day Special
-            </div>
-
-            <p className="mt-2 text-sm text-muted-foreground">
-              Get 35 paid days plus 3 additional free days for{" "}
-              <strong className="text-foreground">$9.99</strong>.
-            </p>
-          </div>
-
-          {/* =====================================================
               COMPARISON
           ====================================================== */}
 
@@ -632,11 +616,6 @@ function PricingPage() {
               <Faq
                 q="What does Pro unlock?"
                 a="Pro unlocks unlimited food scanning, unlimited habits, personalized AI meal and workout plans, AI coaching, advanced nutrition analytics, premium pet features and other premium functionality."
-              />
-
-              <Faq
-                q="What is the 38-Day Special?"
-                a="The 38-Day Special costs $9.99 and provides 35 paid days plus 3 additional free days, for 38 total days of access."
               />
 
               <Faq
