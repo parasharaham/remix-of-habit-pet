@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { ArrowLeft, ArrowRight, Check, Plus, X } from "lucide-react";
 import { completeOnboarding } from "@/lib/onboarding.functions";
 import { PETS, type PetType, getPet } from "@/lib/pet-catalog";
-import { LANGUAGES as SUPPORTED_LANGUAGES, useTranslation } from "@/i18n";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
   head: () => ({
@@ -17,10 +17,6 @@ export const Route = createFileRoute("/_authenticated/onboarding")({
   component: Onboarding,
 });
 
-const LANGUAGES = SUPPORTED_LANGUAGES.map((l) => ({
-  code: l.code,
-  label: l.native === l.english ? l.native : `${l.native} (${l.english})`,
-}));
 
 const HEALTH_OPTIONS = [
   "Overweight", "Underweight", "Low energy / Weakness", "Back pain", "Anxiety / Stress",
@@ -53,11 +49,11 @@ const HABIT_PRESETS = [
   "Walk 5km", "Sleep 8h", "Journal",
 ];
 
-const TOTAL_STEPS = 8;
+const TOTAL_STEPS = 7;
 
 function Onboarding() {
   const navigate = useNavigate();
-  const { setLanguage } = useTranslation();
+  const qc = useQueryClient();
   const fnComplete = useServerFn(completeOnboarding);
 
   const [step, setStep] = useState(1);
@@ -75,7 +71,7 @@ function Onboarding() {
   const [grade, setGrade] = useState("");
 
   // Language
-  const [motherTongue, setMotherTongue] = useState("en");
+  const motherTongue = "en";
 
   // Health
   const [healthConditions, setHealthConditions] = useState<string[]>([]);
@@ -124,6 +120,9 @@ function Onboarding() {
         life_objective: lifeObjective.trim() || null,
         passion: passion.trim() || null,
       } });
+      // Mark onboarding done in the cache so the app gate never sends the user back here.
+      qc.setQueryData(["onboarding-status"], (old: Record<string, unknown> | undefined) => ({ ...(old ?? {}), onboarded: true }));
+      await qc.invalidateQueries({ queryKey: ["onboarding-status"] });
       toast.success(`${petName.trim()} is hatching!`);
       navigate({ to: "/app", replace: true });
     } catch (e) {
@@ -136,10 +135,9 @@ function Onboarding() {
     (step === 1 && !!petType) ||
     (step === 2 && petName.trim().length > 0) ||
     (step === 3 && fullName.trim().length > 0 && age.length > 0 && parseInt(age, 10) >= 5) ||
-    (step === 4 && motherTongue.length > 0) ||
-    (step === 5 && fitnessGoal.length > 0) ||
-    (step === 6 && targetSkill.trim().length > 0 && lifeObjective.trim().length > 0) ||
-    (step === 7 && habits.length > 0);
+    (step === 4 && fitnessGoal.length > 0) ||
+    (step === 5 && targetSkill.trim().length > 0 && lifeObjective.trim().length > 0) ||
+    (step === 6 && habits.length > 0);
 
   return (
     <main className="min-h-screen px-4 py-8 md:py-14">
@@ -236,30 +234,9 @@ function Onboarding() {
           )}
 
           {step === 4 && (
-            <div className="space-y-6">
-              <header className="space-y-1">
-                <p className="text-sm font-semibold text-primary">Step 4 of {TOTAL_STEPS}</p>
-                <h1 className="text-3xl font-bold">Your mother tongue</h1>
-                <p className="text-muted-foreground">We'll send you tips and motivation in this language.</p>
-              </header>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {LANGUAGES.map((l) => {
-                  const active = motherTongue === l.code;
-                  return (
-                    <button key={l.code} onClick={() => { setMotherTongue(l.code); setLanguage(l.code); }}
-                      className={`rounded-2xl border-2 px-4 py-3 text-left font-semibold transition ${active ? "border-primary bg-primary/5" : "border-border bg-background hover:border-primary/40"}`}>
-                      {l.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {step === 5 && (
             <div className="space-y-5">
               <header className="space-y-1">
-                <p className="text-sm font-semibold text-primary">Step 5 of {TOTAL_STEPS}</p>
+                <p className="text-sm font-semibold text-primary">Step 4 of {TOTAL_STEPS}</p>
                 <h1 className="text-3xl font-bold">Your health</h1>
                 <p className="text-muted-foreground">Not medical advice — just to personalize.</p>
               </header>
@@ -326,10 +303,10 @@ function Onboarding() {
             </div>
           )}
 
-          {step === 6 && (
+          {step === 5 && (
             <div className="space-y-5">
               <header className="space-y-1">
-                <p className="text-sm font-semibold text-primary">Step 6 of {TOTAL_STEPS}</p>
+                <p className="text-sm font-semibold text-primary">Step 5 of {TOTAL_STEPS}</p>
                 <h1 className="text-3xl font-bold">A skill to learn</h1>
                 <p className="text-muted-foreground">We'll send you a lesson every day.</p>
               </header>
@@ -385,10 +362,10 @@ function Onboarding() {
             </div>
           )}
 
-          {step === 7 && (
+          {step === 6 && (
             <div className="space-y-6">
               <header className="space-y-1">
-                <p className="text-sm font-semibold text-primary">Step 7 of {TOTAL_STEPS}</p>
+                <p className="text-sm font-semibold text-primary">Step 6 of {TOTAL_STEPS}</p>
                 <h1 className="text-3xl font-bold">What habits feed your pet?</h1>
                 <p className="text-muted-foreground">Pick a few — we'll suggest more based on your profile.</p>
               </header>
@@ -430,9 +407,9 @@ function Onboarding() {
             </div>
           )}
 
-          {step === 8 && (
+          {step === 7 && (
             <div className="space-y-6 text-center">
-              <p className="text-sm font-semibold text-primary">Step 8 of {TOTAL_STEPS}</p>
+              <p className="text-sm font-semibold text-primary">Step 7 of {TOTAL_STEPS}</p>
               <h1 className="text-3xl font-bold">You're all set!</h1>
               <div className="flex justify-center py-4">{petType && <img src={getPet(petType).image} alt={getPet(petType).label} width={180} height={180} className="h-40 w-40 object-contain" />}</div>
               <p className="text-muted-foreground">
