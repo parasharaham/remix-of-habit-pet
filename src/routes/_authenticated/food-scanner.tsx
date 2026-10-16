@@ -1050,7 +1050,7 @@ function ResultView({
             </div>
           </div>
 
-          <div className="rounded-2xl bg-[var(--gradient-meadow)] p-4 text-center">
+          <div className="rounded-2xl bg-[image:var(--gradient-meadow)] p-4 text-center">
             <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Estimated Calories
             </div>
@@ -1224,7 +1224,7 @@ function ResultView({
 
       {/* Recommendations */}
       {edited.recommendations?.length > 0 && (
-        <div className="rounded-2xl bg-[var(--gradient-meadow)] p-5 shadow-card">
+        <div className="rounded-2xl bg-[image:var(--gradient-meadow)] p-5 shadow-card">
           <div className="mb-2 flex items-center gap-2 text-sm font-semibold uppercase tracking-wider">
             <Sparkles size={14} /> Personalized Recommendations
           </div>

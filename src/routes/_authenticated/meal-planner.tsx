@@ -88,7 +88,7 @@ function PlannerPage() {
                     onClick={() => setAim(id)}
                     className={`focus-ring flex flex-col items-center gap-1.5 rounded-2xl border p-3 text-xs font-bold transition ${
                       aim === id
-                        ? "border-transparent bg-[var(--gradient-primary)] text-primary-foreground"
+                        ? "border-transparent bg-[image:var(--gradient-primary)] text-primary-foreground"
                         : "border-border bg-card/50 text-muted-foreground hover:text-foreground"
                     }`}
                   >
@@ -274,7 +274,7 @@ function RemindersPanel() {
           aria-checked={settings.enabled}
           aria-label="Enable reminders"
           className={`focus-ring relative h-7 w-12 rounded-full transition ${
-            settings.enabled ? "bg-[var(--gradient-primary)]" : "bg-muted"
+            settings.enabled ? "bg-[image:var(--gradient-primary)]" : "bg-muted"
           }`}
         >
           <motion.span

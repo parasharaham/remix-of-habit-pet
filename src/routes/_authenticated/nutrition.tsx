@@ -29,7 +29,7 @@ function NutritionPage() {
   return (
     <AppShell title="Nutrition" isAdmin={profile.data?.is_admin}>
       <div className="grid gap-4 md:grid-cols-3">
-        <div className="rounded-[2rem] bg-[var(--gradient-meadow)] p-6 shadow-pet md:col-span-2">
+        <div className="rounded-[2rem] bg-[image:var(--gradient-meadow)] p-6 shadow-pet md:col-span-2">
           <div className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Today's calories</div>
           <div className="mt-1 text-4xl font-bold">
             {s?.total_calories ?? 0}

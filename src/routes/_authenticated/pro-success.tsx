@@ -19,7 +19,7 @@ function ProSuccessPage() {
   const sub = useSubscription();
 
   return (
-    <main className="flex min-h-dvh items-center justify-center bg-[var(--gradient-sky,transparent)] px-6 py-16">
+    <main className="flex min-h-dvh items-center justify-center bg-[image:var(--gradient-sky,transparent)] px-6 py-16">
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}

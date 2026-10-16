@@ -43,7 +43,7 @@ function Landing() {
           </span>
           <h1 className="text-5xl font-bold leading-[1.05] tracking-tight md:text-6xl">
             Build habits. <br />
-            <span className="bg-[var(--gradient-candy)] bg-clip-text text-transparent">
+            <span className="bg-[image:var(--gradient-candy)] bg-clip-text text-transparent">
               Grow your HabitPet.
             </span>
           </h1>
@@ -74,7 +74,7 @@ function Landing() {
           </ul>
         </div>
         <div className="relative mx-auto w-full max-w-md">
-          <div className="absolute inset-0 -z-10 rounded-[3rem] bg-[var(--gradient-sky)] blur-2xl opacity-70" />
+          <div className="absolute inset-0 -z-10 rounded-[3rem] bg-[image:var(--gradient-sky)] blur-2xl opacity-70" />
           <div className="rounded-[3rem] bg-card p-10 shadow-pet">
             <img
               src={petAdult}

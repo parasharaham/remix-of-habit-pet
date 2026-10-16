@@ -77,7 +77,7 @@ export function MotivationPopup() {
                   // Free users see the Pro upgrade right after their motivation.
                   setTimeout(() => show("session", { force: true }), 350);
                 }}
-                className="flex w-full items-center justify-center gap-2 rounded-full bg-[var(--gradient-primary)] py-3 font-bold text-primary-foreground shadow-glow transition active:scale-[0.98]"
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-[image:var(--gradient-primary)] py-3 font-bold text-primary-foreground shadow-glow transition active:scale-[0.98]"
               >
                 <Heart size={18} /> I'm ready
               </button>

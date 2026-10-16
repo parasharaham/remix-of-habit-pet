@@ -101,7 +101,7 @@ function RoutinePage() {
                 <button
                   onClick={() => generate.mutate()}
                   disabled={generate.isPending}
-                  className="inline-flex items-center gap-2 rounded-full bg-[var(--gradient-primary)] px-6 py-3 font-bold text-primary-foreground shadow-glow disabled:opacity-60"
+                  className="inline-flex items-center gap-2 rounded-full bg-[image:var(--gradient-primary)] px-6 py-3 font-bold text-primary-foreground shadow-glow disabled:opacity-60"
                 >
                   {generate.isPending ? <Loader2 className="animate-spin" size={18} /> : <Wand2 size={18} />}
                   {generate.isPending ? "Designing your day…" : "Build my routine"}
@@ -116,7 +116,7 @@ function RoutinePage() {
           ) : (
             <>
               {routine.data?.encouragement && (
-                <section className="rounded-[2rem] bg-[var(--gradient-sky)] p-6 shadow-pet">
+                <section className="rounded-[2rem] bg-[image:var(--gradient-sky)] p-6 shadow-pet">
                   <div className="mb-2 flex items-center gap-2 text-sm font-bold uppercase tracking-wide">
                     <Sparkles size={16} /> For you
                   </div>
@@ -305,7 +305,7 @@ function RoutineChat() {
           type="submit"
           disabled={!input.trim() || send.isPending}
           aria-label="Send"
-          className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[var(--gradient-primary)] text-primary-foreground shadow-glow disabled:opacity-50"
+          className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[image:var(--gradient-primary)] text-primary-foreground shadow-glow disabled:opacity-50"
         >
           <Send size={18} />
         </button>

@@ -61,7 +61,7 @@ function AchievementsPage() {
               key={a.id}
               className={`rounded-2xl border-2 p-5 shadow-card transition ${
                 unlocked
-                  ? "border-primary/40 bg-[var(--gradient-meadow)]"
+                  ? "border-primary/40 bg-[image:var(--gradient-meadow)]"
                   : "border-border bg-card"
               }`}
             >
