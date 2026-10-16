@@ -72,7 +72,7 @@ function WorkoutPlannerPage() {
                   onClick={() => setGoal(g.id)}
                   className={`focus-ring rounded-2xl border p-3 text-xs font-bold transition ${
                     goal === g.id
-                      ? "border-transparent bg-[var(--gradient-primary)] text-primary-foreground"
+                      ? "border-transparent bg-[image:var(--gradient-primary)] text-primary-foreground"
                       : "border-border bg-card/50 text-muted-foreground hover:text-foreground"
                   }`}
                 >

@@ -556,7 +556,7 @@ function BarChart({ data }: { data: { date: string; count: number }[] }) {
       {data.map((d) => (
         <div key={d.date} className="flex flex-1 flex-col items-center gap-1" title={`${d.date}: ${d.count}`}>
           <div
-            className="w-full rounded-t bg-[var(--gradient-candy)] transition-all"
+            className="w-full rounded-t bg-[image:var(--gradient-candy)] transition-all"
             style={{ height: `${(d.count / max) * 100}%`, minHeight: 2 }}
           />
           <span className="text-[9px] text-muted-foreground">{d.date.slice(5)}</span>

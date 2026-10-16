@@ -133,7 +133,7 @@ function AppShellInner({ children, title, isAdmin }: Props) {
                   <motion.span
                     layoutId="sidebar-active"
                     transition={{ type: "spring", stiffness: 420, damping: 34 }}
-                    className="absolute inset-0 -z-10 rounded-2xl bg-[var(--gradient-primary)] shadow-glow"
+                    className="absolute inset-0 -z-10 rounded-2xl bg-[image:var(--gradient-primary)] shadow-glow"
                   />
                 )}
                 <Icon size={18} />
@@ -203,7 +203,7 @@ function AppShellInner({ children, title, isAdmin }: Props) {
                       onClick={() => setMobileOpen(false)}
                       className={`flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-bold transition ${
                         active
-                          ? "bg-[var(--gradient-primary)] text-primary-foreground shadow-glow"
+                          ? "bg-[image:var(--gradient-primary)] text-primary-foreground shadow-glow"
                           : "text-muted-foreground hover:bg-muted"
                       }`}
                     >
@@ -285,7 +285,7 @@ function MobileCameraNav({ pathname }: { pathname: string }) {
           <Link
             to="/food-scanner"
             aria-label="Scan food"
-            className="-mt-8 grid h-16 w-16 place-items-center rounded-full bg-[var(--gradient-primary)] text-primary-foreground shadow-glow ring-4 ring-background transition active:scale-95"
+            className="-mt-8 grid h-16 w-16 place-items-center rounded-full bg-[image:var(--gradient-primary)] text-primary-foreground shadow-glow ring-4 ring-background transition active:scale-95"
           >
             <motion.span animate={{ scale: [1, 1.08, 1] }} transition={{ duration: 2.4, repeat: Infinity }}>
               <Camera size={26} />

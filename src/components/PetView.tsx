@@ -44,7 +44,7 @@ export function PetView({ name, stage, level, pulseKey, leveledUp }: Props) {
 
   return (
     <div className="relative mx-auto flex flex-col items-center gap-2">
-      <div className="absolute -inset-6 -z-10 rounded-full bg-[var(--gradient-meadow)] blur-2xl" />
+      <div className="absolute -inset-6 -z-10 rounded-full bg-[image:var(--gradient-meadow)] blur-2xl" />
       <div className={pop ? "pet-pop" : "pet-float"}>
         <img
           src={STAGE_SRC[stage]}

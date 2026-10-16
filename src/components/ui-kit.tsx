@@ -385,7 +385,7 @@ export function GoalBar({
 export function AIThinking({ label = "AI is thinking" }: { label?: string }) {
   return (
     <div className="flex items-center gap-3 rounded-2xl border border-border bg-card/60 px-4 py-3 backdrop-blur">
-      <span className="relative grid h-8 w-8 place-items-center rounded-full bg-[var(--gradient-primary)]">
+      <span className="relative grid h-8 w-8 place-items-center rounded-full bg-[image:var(--gradient-primary)]">
         <motion.span
           className="absolute inset-0 rounded-full"
           animate={{ boxShadow: ["0 0 0 0 var(--brand-cyan)", "0 0 0 10px transparent"] }}

@@ -156,7 +156,7 @@ function FoodPage() {
 
   return (
     <AppShell title="Food log" isAdmin={profile.data?.is_admin}>
-      <div className="mb-6 flex flex-col gap-3 rounded-[2rem] bg-[var(--gradient-meadow)] p-6 shadow-pet sm:flex-row sm:items-center sm:justify-between">
+      <div className="mb-6 flex flex-col gap-3 rounded-[2rem] bg-[image:var(--gradient-meadow)] p-6 shadow-pet sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Today</div>
           <div className="text-3xl font-bold">
@@ -328,7 +328,7 @@ function MealRow({ meal, onDelete }: { meal: MealLogDTO; onDelete: () => void })
       {meal.photo_url ? (
         <img src={meal.photo_url} alt="" className="h-16 w-16 shrink-0 rounded-2xl object-cover" />
       ) : (
-        <div className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-[var(--gradient-meadow)] text-3xl">
+        <div className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-[image:var(--gradient-meadow)] text-3xl">
           {MEAL_EMOJI[meal.meal_type]}
         </div>
       )}

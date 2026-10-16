@@ -201,7 +201,7 @@ function Dashboard() {
             <Link
               to="/pet"
               aria-label="Your pet"
-              className="focus-ring grid h-11 w-11 place-items-center rounded-2xl bg-[var(--gradient-primary)] text-xl shadow-card transition hover:-translate-y-0.5"
+              className="focus-ring grid h-11 w-11 place-items-center rounded-2xl bg-[image:var(--gradient-primary)] text-xl shadow-card transition hover:-translate-y-0.5"
             >
               {pet.data ? <PetEmoji type={pet.data.pet_type} stage={pet.data.pet_stage} size="sm" /> : "🐣"}
             </Link>
@@ -218,7 +218,7 @@ function Dashboard() {
 
       <div className="grid gap-5 lg:grid-cols-[6fr_5fr]">
         {/* ------------------------------------------- today's progress hero */}
-        <Card className="relative overflow-hidden bg-[var(--gradient-aurora)] lg:col-span-2">
+        <Card className="relative overflow-hidden bg-[image:var(--gradient-aurora)] lg:col-span-2">
           <div className="pointer-events-none absolute -right-16 -top-16 h-52 w-52 rounded-full bg-primary/25 blur-3xl" />
           <SectionHeader
             title="Today's Progress"
@@ -312,7 +312,7 @@ function Dashboard() {
                 <StatBar label="Energy" value={pet.data.energy_points} max={100} variant="xp" icon="⚡" />
               </div>
               <div className="mt-4 grid grid-cols-2 gap-3">
-                <div className="rounded-2xl bg-[var(--gradient-sunrise)] p-4">
+                <div className="rounded-2xl bg-[image:var(--gradient-sunrise)] p-4">
                   <div className="flex items-center gap-2 text-2xl font-bold">
                     <Flame size={20} /> {bestStreak}
                   </div>

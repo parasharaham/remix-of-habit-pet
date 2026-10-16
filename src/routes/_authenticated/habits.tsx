@@ -331,7 +331,7 @@ function HabitsPage() {
               h.is_paused ? "opacity-60" : ""
             }`}
           >
-            <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[var(--gradient-meadow)] text-2xl">
+            <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[image:var(--gradient-meadow)] text-2xl">
               {categoryIcon(h.category)}
             </div>
             <div className="min-w-0 flex-1">

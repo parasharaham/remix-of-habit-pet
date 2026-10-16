@@ -38,7 +38,7 @@ export function AuthSplash() {
   return (
     <div className="grid min-h-dvh place-items-center bg-background px-6">
       <div className="flex flex-col items-center gap-4 text-center">
-        <span className="grid h-16 w-16 animate-[float-slow_3s_ease-in-out_infinite] place-items-center rounded-3xl bg-[var(--gradient-primary)] text-3xl shadow-glow">
+        <span className="grid h-16 w-16 animate-[float-slow_3s_ease-in-out_infinite] place-items-center rounded-3xl bg-[image:var(--gradient-primary)] text-3xl shadow-glow">
           🐣
         </span>
         <p className="text-sm font-semibold text-muted-foreground">Loading your HabitPet…</p>

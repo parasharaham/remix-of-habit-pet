@@ -59,7 +59,7 @@ function AuthPage() {
   return (
     <main className="flex min-h-screen items-center justify-center px-6 py-16">
       <div className="grid w-full max-w-4xl overflow-hidden rounded-[2.5rem] bg-card shadow-pet md:grid-cols-2">
-        <div className="hidden flex-col items-center justify-center gap-4 bg-[var(--gradient-sky)] p-10 md:flex">
+        <div className="hidden flex-col items-center justify-center gap-4 bg-[image:var(--gradient-sky)] p-10 md:flex">
           <img src={petEgg} alt="" width={768} height={768} className="pet-float h-auto w-56" />
           <h2 className="text-center text-2xl font-bold">Your HabitPet is waiting</h2>
           <p className="text-center text-sm text-muted-foreground">
