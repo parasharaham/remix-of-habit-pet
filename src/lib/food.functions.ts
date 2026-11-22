@@ -408,7 +408,8 @@ function toMealDTO(r: any): MealLogDTO {
     items: (r.items as any[]) ?? [],
     notes: r.notes ?? null,
 
-    photo_url: r.photo_url ?? null,
+    // Meal photos are never stored — only the text analysis is kept.
+    photo_url: null,
     food_name: r.food_name ?? null,
     total_calories: Number(r.total_calories ?? 0),
     protein_g: Number(r.protein_g ?? 0),
@@ -470,7 +471,7 @@ export const logMeal = createServerFn({ method: "POST" })
         meal_date: data.meal_date ?? new Date().toISOString().slice(0, 10),
         items: data.items,
         notes: data.notes ?? null,
-        photo_url: data.photo_url ?? null,
+        photo_url: null,
         food_name: data.food_name ?? null,
         total_calories: data.total_calories,
         protein_g: data.protein_g,
@@ -628,16 +629,7 @@ export const listMealsByDate = createServerFn({ method: "GET" })
       .eq("meal_date", date)
       .order("created_at", { ascending: true });
     if (error) throw error;
-    const out: MealLogDTO[] = [];
-    for (const r of rows ?? []) {
-      const dto = toMealDTO(r);
-      if (dto.photo_url && !dto.photo_url.startsWith("http")) {
-        const { data: signed } = await supabase.storage.from("meal-photos").createSignedUrl(dto.photo_url, 3600);
-        if (signed?.signedUrl) dto.photo_url = signed.signedUrl;
-      }
-      out.push(dto);
-    }
-    return out;
+    return (rows ?? []).map(toMealDTO);
   });
 
 export interface NutritionSummary {
@@ -713,24 +705,4 @@ export const getNutritionSummary = createServerFn({ method: "GET" })
       target_calories: prof?.daily_calorie_target ?? null,
       weekly,
     };
-  });
-
-
-export const uploadMealPhoto = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ data_url: z.string().startsWith("data:image/") }).parse(d))
-  .handler(async ({ data, context }): Promise<{ path: string }> => {
-    const { supabase, userId } = context;
-    const match = data.data_url.match(/^data:(image\/[a-z+]+);base64,(.+)$/);
-    if (!match) throw new Error("Invalid image data URL");
-    const mime = match[1];
-    const ext = mime.split("/")[1].replace("+xml", "");
-    const bytes = Uint8Array.from(atob(match[2]), (c) => c.charCodeAt(0));
-    const path = `${userId}/${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from("meal-photos").upload(path, bytes, {
-      contentType: mime,
-      upsert: false,
-    });
-    if (error) throw error;
-    return { path };
   });

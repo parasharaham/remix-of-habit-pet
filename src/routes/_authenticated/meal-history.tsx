@@ -142,13 +142,9 @@ function MealCard({ meal, onDelete }: { meal: MealLogDTO; onDelete: () => void }
   const time = new Date(meal.created_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
   return (
     <article className="flex items-stretch gap-4 overflow-hidden rounded-2xl bg-card shadow-card">
-      {meal.photo_url ? (
-        <img src={meal.photo_url} alt="" className="h-28 w-28 shrink-0 object-cover" />
-      ) : (
-        <div className="grid h-28 w-28 shrink-0 place-items-center bg-[image:var(--gradient-meadow)] text-4xl">
-          {MEAL_EMOJI[meal.meal_type]}
-        </div>
-      )}
+      <div className="grid h-28 w-28 shrink-0 place-items-center bg-[image:var(--gradient-meadow)] text-4xl">
+        {MEAL_EMOJI[meal.meal_type]}
+      </div>
       <div className="flex min-w-0 flex-1 flex-col justify-center py-3 pr-3">
         <div className="flex items-center justify-between gap-2">
           <div className="min-w-0">

@@ -10,7 +10,6 @@ import {
   logMeal,
   listMealsByDate,
   deleteMeal,
-  uploadMealPhoto,
   type MealLogDTO,
   type MealAnalysisDTO,
 } from "@/lib/food.functions";
@@ -45,7 +44,6 @@ function FoodPage() {
   const fnAnalyze = useServerFn(analyzeMeal);
   const fnLog = useServerFn(logMeal);
   const fnDelete = useServerFn(deleteMeal);
-  const fnUpload = useServerFn(uploadMealPhoto);
 
   const profile = useQuery({ queryKey: ["profile"], queryFn: () => fetchProfile() });
   const today = new Date().toISOString().slice(0, 10);
@@ -110,18 +108,14 @@ function FoodPage() {
 
   const save = useMutation({
     mutationFn: async () => {
-      let photoPath: string | null = null;
-      if (photoDataUrl) {
-        const up = await fnUpload({ data: { data_url: photoDataUrl } });
-        photoPath = up.path;
-      }
+      // Photos are only read by the AI — never uploaded or saved.
       const a = analysis;
       return fnLog({
         data: {
           meal_type: mealType,
           items: a?.items ?? [],
           notes: text || null,
-          photo_url: photoPath,
+          photo_url: null,
           total_calories: a?.total_calories ?? 0,
           protein_g: a?.protein_g ?? 0,
           carbs_g: a?.carbs_g ?? 0,
@@ -325,13 +319,9 @@ function Stat({ label, value }: { label: string; value: string }) {
 function MealRow({ meal, onDelete }: { meal: MealLogDTO; onDelete: () => void }) {
   return (
     <article className="flex items-center gap-3 rounded-2xl bg-card p-4 shadow-card">
-      {meal.photo_url ? (
-        <img src={meal.photo_url} alt="" className="h-16 w-16 shrink-0 rounded-2xl object-cover" />
-      ) : (
-        <div className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-[image:var(--gradient-meadow)] text-3xl">
-          {MEAL_EMOJI[meal.meal_type]}
-        </div>
-      )}
+      <div className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-[image:var(--gradient-meadow)] text-3xl">
+        {MEAL_EMOJI[meal.meal_type]}
+      </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <span className="font-bold capitalize">{meal.meal_type}</span>

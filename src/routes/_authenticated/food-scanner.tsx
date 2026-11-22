@@ -28,7 +28,6 @@ import { AppShell } from "@/components/AppShell";
 import {
   analyzeMeal,
   logMeal,
-  uploadMealPhoto,
   logAiCorrection,
   CLASSIFICATION_LABEL,
   type MealAnalysisDTO,
@@ -219,7 +218,6 @@ function FoodScannerPage() {
   const fnAnalyze = useServerFn(analyzeMeal);
   const sub = useSubscription();
   const [showUpgrade, setShowUpgrade] = useState(false);
-  const fnUpload = useServerFn(uploadMealPhoto);
   const fnLog = useServerFn(logMeal);
   const fnCorrect = useServerFn(logAiCorrection);
 
@@ -409,14 +407,13 @@ function FoodScannerPage() {
 
   const saveMeal = useMutation({
     mutationFn: async (edited: MealAnalysisDTO) => {
-      if (!photo) throw new Error("Missing photo");
-      const up = await fnUpload({ data: { data_url: photo } });
+      // The photo is only used for the AI analysis — it is never uploaded or saved.
       return fnLog({
         data: {
           meal_type: mealType,
           items: edited.items,
           notes: edited.verdict || null,
-          photo_url: up.path,
+          photo_url: null,
           food_name: edited.food_name ?? edited.items[0]?.name ?? null,
           total_calories: edited.total_calories,
           protein_g: edited.protein_g,
